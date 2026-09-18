@@ -16,7 +16,7 @@ const values = [
   {
     Icon: Gem,
     title: "Premium Quality",
-    copy: "Only the finest materials, chosen with intent and finished by hand.",
+    copy: "Only finest materials, chosen with intent and finished by hand.",
   },
   {
     Icon: Sparkles,
@@ -75,9 +75,9 @@ export default function AboutPage() {
           </p>
           <p className="mt-6 text-sm leading-relaxed text-charcoal/65">
             Our collections are designed for the modern individual who values
-            authenticity, luxury and self-expression. Each piece begins on paper,
-            is refined against the body, and is finished by hand in small runs —
-            nothing rushed to a calendar it does not deserve.
+            authenticity, luxury and self-expression. Each piece begins on
+            paper, is refined against the body, and is finished by hand in small
+            runs — nothing rushed to a calendar it does not deserve.
           </p>
         </div>
 
@@ -97,10 +97,10 @@ export default function AboutPage() {
               Made by hand, meant to last.
             </h2>
             <p className="mt-5 text-sm leading-relaxed text-charcoal/65">
-              From the first sketch to the final stitch, our makers work in small
-              ateliers, finishing seams by hand and pressing each garment to sit
-              exactly as intended. We choose materials for how they age, not only
-              how they look on the first day.
+              From the first sketch to the final stitch, our makers work in
+              small ateliers, finishing seams by hand and pressing each garment
+              to sit exactly as intended. We choose materials for how they age,
+              not only how they look on the first day.
             </p>
             <p className="mt-4 text-sm leading-relaxed text-charcoal/65">
               The result is quiet: a piece that simply fits, and keeps fitting.
@@ -121,7 +121,9 @@ export default function AboutPage() {
               <span className="flex size-11 items-center justify-center rounded-full border border-muted-gold/40 text-muted-gold">
                 <Icon className="size-5" strokeWidth={1.4} />
               </span>
-              <h3 className="mt-4 text-sm font-medium text-charcoal">{title}</h3>
+              <h3 className="mt-4 text-sm font-medium text-charcoal">
+                {title}
+              </h3>
               <p className="mt-1.5 text-sm leading-relaxed text-charcoal/60">
                 {copy}
               </p>
