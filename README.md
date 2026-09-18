@@ -1,36 +1,87 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ZORAEL & CO. — Luxury Fashion House
 
-## Getting Started
+A production-quality, editorial luxury fashion e-commerce site and PWA, built to the
+brand spec in `CLAUDE.md` and its supporting files (`DESIGN-SYSTEM.md`, `PAGES.md`,
+`COMPONENTS.md`, `CONTENT.md`, `PWA.md`, `PROMPT.md`).
 
-First, run the development server:
+## Stack
+
+- **Next.js 16** (App Router, Server Components by default) + **TypeScript**
+- **Tailwind CSS v4** with brand design tokens
+- **shadcn/ui + Base UI** primitives, **Lucide** icons
+- Installable **PWA** — manifest, generated icons, service worker, offline fallback
+
+## Getting started
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev     # http://localhost:3000
+npm run build   # production build
+npm run lint    # eslint
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Pages
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+`/` · `/shop` (filterable by category) · `/shop/[slug]` (product) · `/search` ·
+`/collections` + `/collections/[slug]` · `/about` · `/journal` + `/journal/[slug]` ·
+`/bag` · `/checkout` · `/account` + `/account/wishlist` · `/offline`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Content & imagery — the single swap point
 
-## Learn More
+All demo photography resolves through **`src/lib/images.ts`** (Unsplash by default).
+Replace the photo ids or point `img()` at your own CDN/`/public` assets and nothing
+else needs to change. The `<Media>` component degrades to an on-brand placeholder if
+an image fails, so the layout is never broken while assets are swapped in.
 
-To learn more about Next.js, take a look at the following resources:
+Products, collections and journal content live in `src/lib/products.ts`,
+`src/lib/collections.ts` and `src/lib/journal.ts`. Site/navigation config is in
+`src/lib/site.ts`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## State
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Bag and wishlist are client-side (`StoreProvider`, persisted to `localStorage`).
+The account area is a front-end shell (no auth backend yet).
 
-## Deploy on Vercel
+## Backend & payments
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The checkout is backed by real API routes with a **provider-agnostic** payment
+layer. Switching gateways is a config change — no application code changes.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**Choose a provider** with `PAYMENT_PROVIDER` in `.env.local` (see `.env.example`):
+
+| Value      | Behaviour                                                                 |
+| ---------- | ------------------------------------------------------------------------- |
+| `mock`     | Default. Full checkout works locally with no real money.                  |
+| `http`     | Generic REST provider — set `PAYMENT_API_URL` ("just replace the URL").   |
+| `razorpay` | Ready example (INR / UPI / cards) — set `RAZORPAY_KEY_ID`/`_SECRET`.      |
+| `stripe`   | Scaffolded; implement `StripeGateway` to enable.                          |
+
+**How to add your own gateway:** implement the `PaymentGateway` interface in
+`src/lib/payments/types.ts` (see `razorpay-gateway.ts` as a template) and register
+it in `src/lib/payments/index.ts`. Everything else stays the same.
+
+**API routes**
+
+- `POST /api/checkout` — prices the cart **server-side** (client prices are never
+  trusted), creates a gateway order, stores it. COD skips the gateway.
+- `POST /api/checkout/verify` — verifies the payment signature, marks the order paid.
+- `POST /api/webhooks/payment` — gateway webhook (signature-verified); set this URL
+  in your provider dashboard.
+- `GET /api/orders/[id]` — order status. `GET /api/products[?category=&q=]` and
+  `GET /api/products/[slug]` — catalog.
+- `POST /api/checkout/mock-pay` — mock-only helper that simulates the provider
+  callback; refuses to run unless `PAYMENT_PROVIDER=mock`.
+
+**Persistence:** orders use an in-memory `OrderStore` (`src/lib/orders/store.ts`)
+so the flow runs with no external services. Swap it for a DB-backed implementation
+(Prisma/Drizzle/etc.) behind the same interface — the API routes don't change.
+
+**Security notes:** amounts are always recomputed from the catalog on the server;
+signatures/webhooks are verified with HMAC and constant-time comparison; secrets
+live only in env vars and never reach the browser.
+
+## Notes
+
+- Per `COMPONENTS.md`, the mobile bottom navigation is exactly **Home / Shop / Search /
+  Bag** (Search emphasized); **Account** lives in the header and the mobile menu.
+- No glassmorphism / frosted glass — all surfaces are solid, per the design system.
