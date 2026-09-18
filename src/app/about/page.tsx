@@ -40,7 +40,7 @@ export default function AboutPage() {
     <div>
       {/* Hero */}
       <section className="relative isolate overflow-hidden bg-cream">
-        <div className="relative aspect-[4/5] w-full sm:aspect-[16/9] lg:aspect-[16/6]">
+        <div className="relative aspect-4/5 w-full sm:aspect-[16/9] lg:aspect-[16/6]">
           <Media
             src={img(PHOTO.aboutInterior, 1800, 900)}
             alt="The Zorael atelier"
