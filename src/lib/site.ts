@@ -16,9 +16,9 @@ export const SITE = {
 export const desktopNav = [
   { label: "Home", href: "/" },
   { label: "Shop", href: "/shop" },
-  { label: "About Us", href: "/about" },
-  { label: "Collections", href: "/collections" },
   { label: "Journal", href: "/journal" },
+  // { label: "Collections", href: "/collections" },
+  { label: "About Us", href: "/about" },
 ] as const;
 
 /** Mobile bottom navigation — Home / Shop / Search / Bag / Account (matches mockups). */
@@ -35,10 +35,10 @@ export const mobileMenu = [
   { label: "Home", href: "/" },
   { label: "Shop", href: "/shop" },
   { label: "Collections", href: "/collections" },
-  { label: "About Us", href: "/about" },
   { label: "Journal", href: "/journal" },
   { label: "Wishlist", href: "/account/wishlist" },
   { label: "Account", href: "/account" },
+  { label: "About Us", href: "/about" },
   { label: "Customer Support", href: "/about#support" },
 ] as const;
 
@@ -86,10 +86,7 @@ export const subcategories: Record<string, string[]> = {
   "hand-bags": ["All", "Shoulder Bags", "Tote Bags", "Top Handle Bags"],
 };
 
-export const categoryMeta: Record<
-  string,
-  { title: string; blurb: string }
-> = {
+export const categoryMeta: Record<string, { title: string; blurb: string }> = {
   clothes: { title: "Clothes", blurb: "Elegant. Timeless. You." },
   jewelry: { title: "Jewellery", blurb: "Pieces that tell your story." },
   "hand-bags": { title: "Hand Bags", blurb: "Luxury in your hands." },

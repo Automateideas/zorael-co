@@ -62,7 +62,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${inter.variable} ${playfair.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col bg-ivory">
+      <body
+        className="flex min-h-full flex-col bg-ivory"
+        data-new-gr-c-s-check-loaded="14.1333.0"
+        data-gr-ext-installed=""
+        cz-shortcut-listen="true"
+      >
         <StoreProvider>
           <SiteHeader />
           <main className="flex-1 pb-20 lg:pb-0">{children}</main>

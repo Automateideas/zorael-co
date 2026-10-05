@@ -4,6 +4,7 @@ import {
   ChevronRight,
   Heart,
   HelpCircle,
+  Info,
   MapPin,
   Package,
   CreditCard,
@@ -32,6 +33,7 @@ const menu = [
     Icon: CreditCard,
     note: "Saved cards & UPI",
   },
+  { label: "About Us", href: "/about", Icon: Info, note: "Our story & atelier" },
   {
     label: "Help & Support",
     href: "/about#support",

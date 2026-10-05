@@ -40,7 +40,8 @@ Products, collections and journal content live in `src/lib/products.ts`,
 ## State
 
 Bag and wishlist are client-side (`StoreProvider`, persisted to `localStorage`).
-The account area is a front-end shell (no auth backend yet).
+The account area is a front-end shell (no auth backend yet); its menu also
+links to the About Us page (`/about`).
 
 ## Backend & payments
 
