@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getGateway } from "@/lib/payments";
 import { getOrderStore } from "@/lib/orders/store";
+import { decrementStock } from "@/lib/inventory";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,6 +27,7 @@ export async function POST(request: Request) {
       (await store.get(result.orderId)) ??
       (await store.findByProviderOrderId(result.orderId));
     if (order) {
+      const previousStatus = order.status;
       const status =
         result.status === "paid"
           ? "paid"
@@ -35,7 +37,24 @@ export async function POST(request: Request) {
       await store.update(order.id, {
         status,
         providerPaymentId: result.providerPaymentId ?? order.providerPaymentId,
-      });
+      }, "webhook");
+
+      // Decrement stock when an order transitions to "paid" for the first time.
+      // COD orders already decremented at placement; online payments decrement here.
+      if (
+        status === "paid" &&
+        previousStatus !== "paid" &&
+        order.method !== "cod"
+      ) {
+        await decrementStock(
+          order.cart.lines.map((l) => ({
+            productId: l.productId,
+            quantity: l.quantity,
+            size: l.size,
+            color: l.color,
+          })),
+        );
+      }
     }
   }
 

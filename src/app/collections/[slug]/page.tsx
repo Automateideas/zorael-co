@@ -3,13 +3,16 @@ import { notFound } from "next/navigation";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { ProductGrid } from "@/components/product/product-grid";
 import { Media } from "@/components/media";
-import { collections, getCollection } from "@/lib/collections";
-import { getProductsByIds } from "@/lib/catalog";
+import {
+  getCollection,
+  getCollections,
+  getProductsByIds,
+} from "@/lib/catalog";
 
 type Params = Promise<{ slug: string }>;
 
-export function generateStaticParams() {
-  return collections.map((c) => ({ slug: c.slug }));
+export async function generateStaticParams() {
+  return (await getCollections()).map((c) => ({ slug: c.slug }));
 }
 
 export async function generateMetadata({
@@ -18,7 +21,7 @@ export async function generateMetadata({
   params: Params;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const collection = getCollection(slug);
+  const collection = await getCollection(slug);
   if (!collection) return { title: "Not found" };
   return {
     title: collection.name,
@@ -28,7 +31,7 @@ export async function generateMetadata({
 
 export default async function CollectionPage({ params }: { params: Params }) {
   const { slug } = await params;
-  const collection = getCollection(slug);
+  const collection = await getCollection(slug);
   if (!collection) notFound();
 
   const found = await getProductsByIds(collection.products);

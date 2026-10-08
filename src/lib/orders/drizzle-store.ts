@@ -1,7 +1,13 @@
 import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { getDb } from "@/db/client";
-import { orders, orderItems, type OrderRow, type OrderItemRow } from "@/db/schema";
+import {
+  orders,
+  orderItems,
+  orderEvents,
+  type OrderRow,
+  type OrderItemRow,
+} from "@/db/schema";
 import type { PricedCart } from "../pricing";
 import type { Order, OrderStore } from "./store";
 
@@ -82,6 +88,12 @@ export class DrizzleOrderStore implements OrderStore {
           })),
         );
       }
+      await tx.insert(orderEvents).values({
+        orderId: id,
+        type: "created",
+        detail: { status: input.status ?? "created", method: input.method, total: cart.total },
+        actor: "system",
+      });
     });
 
     const created = await this.get(id);
@@ -115,7 +127,11 @@ export class DrizzleOrderStore implements OrderStore {
     return toOrder(row, items);
   }
 
-  async update(id: string, patch: Partial<Order>): Promise<Order | null> {
+  async update(
+    id: string,
+    patch: Partial<Order>,
+    actor = "system",
+  ): Promise<Order | null> {
     const db = getDb();
     const set: Partial<typeof orders.$inferInsert> = {
       updatedAt: new Date(),
@@ -127,7 +143,30 @@ export class DrizzleOrderStore implements OrderStore {
     if (patch.providerPaymentId !== undefined)
       set.providerPaymentId = patch.providerPaymentId;
 
-    await db.update(orders).set(set).where(eq(orders.id, id));
+    await db.transaction(async (tx) => {
+      const [before] = await tx
+        .select({ status: orders.status })
+        .from(orders)
+        .where(eq(orders.id, id))
+        .for("update");
+      if (!before) return;
+      await tx.update(orders).set(set).where(eq(orders.id, id));
+
+      const statusChanged = patch.status && patch.status !== before.status;
+      if (statusChanged || patch.providerPaymentId) {
+        await tx.insert(orderEvents).values({
+          orderId: id,
+          type: statusChanged ? "status_changed" : "payment_recorded",
+          detail: {
+            ...(statusChanged ? { from: before.status, to: patch.status } : {}),
+            ...(patch.providerPaymentId
+              ? { providerPaymentId: patch.providerPaymentId }
+              : {}),
+          },
+          actor,
+        });
+      }
+    });
     return this.get(id);
   }
 }

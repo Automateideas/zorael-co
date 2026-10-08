@@ -1,15 +1,24 @@
-import type { NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/proxy";
 
 export async function proxy(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+
   // No-op until Supabase is configured, so the site still runs without it.
   if (
     !process.env.NEXT_PUBLIC_SUPABASE_URL ||
     !process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
   ) {
-    return;
+    const response = NextResponse.next();
+    response.headers.set("x-pathname", pathname);
+    return response;
   }
-  return updateSession(request);
+
+  const response = await updateSession(request);
+  if (response) {
+    response.headers.set("x-pathname", pathname);
+  }
+  return response;
 }
 
 export const config = {

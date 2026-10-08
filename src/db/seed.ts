@@ -11,6 +11,7 @@ config({ path: ".env" });
 
 import { getDb } from "./client";
 import {
+  categories as categoriesTable,
   collectionProducts,
   collections as collectionsTable,
   productVariants,
@@ -24,8 +25,26 @@ const DEFAULT_STOCK = 25;
 const skuPart = (v: string) =>
   v.toUpperCase().replace(/[^A-Z0-9]+/g, "").slice(0, 6);
 
+const DEFAULT_CATEGORIES = [
+  { slug: "clothes", label: "Clothes", blurb: "Elegant. Timeless. You.", sortOrder: 0, subcategories: ["All", "Dresses", "Sarees", "Lehengas", "Co-ords"] },
+  { slug: "jewelry", label: "Jewellery", blurb: "Pieces that tell your story.", sortOrder: 1, subcategories: ["All", "Necklaces", "Earrings", "Rings", "Bracelets"] },
+  { slug: "hand-bags", label: "Hand Bags", blurb: "Luxury in your hands.", sortOrder: 2, subcategories: ["All", "Shoulder Bags", "Tote Bags", "Top Handle Bags"] },
+];
+
 async function main() {
   const db = getDb();
+
+  console.log("Seeding categories…");
+  for (const cat of DEFAULT_CATEGORIES) {
+    await db
+      .insert(categoriesTable)
+      .values(cat)
+      .onConflictDoUpdate({
+        target: categoriesTable.slug,
+        set: { label: cat.label, blurb: cat.blurb, sortOrder: cat.sortOrder, subcategories: cat.subcategories },
+      });
+  }
+
   console.log(`Seeding ${products.length} products…`);
 
   for (const p of products) {

@@ -70,6 +70,10 @@ export function CheckoutView() {
       setCodPending(result.status === "pending");
       clearCart();
       setPlaced(true);
+    } else if (result.status === "out_of_stock") {
+      setError(
+        "Some items in your bag are out of stock. Please review your bag and try again.",
+      );
     } else {
       setError(result.error);
     }

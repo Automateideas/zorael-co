@@ -8,10 +8,13 @@ export function ProductCard({
   product,
   priority = false,
   sizes,
+  outOfStock = false,
 }: {
   product: Product;
   priority?: boolean;
   sizes?: string;
+  /** When true, shows an "Out of Stock" badge over the image. */
+  outOfStock?: boolean;
 }) {
   return (
     <article className="group">
@@ -41,10 +44,17 @@ export function ProductCard({
           <div className="absolute right-2.5 top-2.5 z-10">
             <WishlistButton productId={product.id} size="sm" />
           </div>
-          {product.isNew && (
+          {outOfStock ? (
+            <span className="absolute left-2.5 top-2.5 z-10 rounded-full bg-charcoal/80 px-2.5 py-1 text-[0.6rem] font-medium uppercase tracking-[0.14em] text-ivory">
+              Out of Stock
+            </span>
+          ) : product.isNew ? (
             <span className="absolute left-2.5 top-2.5 z-10 rounded-full bg-white px-2.5 py-1 text-[0.6rem] font-medium uppercase tracking-[0.14em] text-charcoal">
               New
             </span>
+          ) : null}
+          {outOfStock && (
+            <div className="absolute inset-0 bg-ivory/30" />
           )}
         </div>
 

@@ -33,7 +33,12 @@ export interface OrderStore {
   }): Promise<Order>;
   get(id: string): Promise<Order | null>;
   findByProviderOrderId(providerOrderId: string): Promise<Order | null>;
-  update(id: string, patch: Partial<Order>): Promise<Order | null>;
+  /** `actor` is recorded in the order event log (e.g. "webhook", "admin:<id>"). */
+  update(
+    id: string,
+    patch: Partial<Order>,
+    actor?: string,
+  ): Promise<Order | null>;
 }
 
 class InMemoryOrderStore implements OrderStore {

@@ -6,14 +6,12 @@ import { FilterPills } from "@/components/shop/filter-pills";
 import { ProductGrid } from "@/components/product/product-grid";
 import { CollectionCard } from "@/components/collections/collection-card";
 import { Media } from "@/components/media";
-import { getAllProducts, getProductsBySubcategory } from "@/lib/catalog";
-import { collections } from "@/lib/collections";
 import {
-  shopFilters,
-  shopCategories,
-  subcategories,
-  categoryMeta,
-} from "@/lib/site";
+  getAllProducts,
+  getCategories,
+  getCollections,
+  getProductsBySubcategory,
+} from "@/lib/catalog";
 import type { Product } from "@/lib/types";
 
 export const metadata: Metadata = {
@@ -31,18 +29,35 @@ export default async function ShopPage({
 }) {
   const { category = "all", sub = "All" } = await searchParams;
 
-  const isCategory =
-    category === "clothes" ||
-    category === "jewelry" ||
-    category === "hand-bags";
+  const [all, collections, dbCategories] = await Promise.all([
+    getAllProducts(),
+    getCollections(),
+    getCategories(),
+  ]);
+
+  const categoryMap = new Map(dbCategories.map((c) => [c.slug, c]));
+  const isCategory = categoryMap.has(category);
   const isCollections = category === "collections";
 
-  const meta = isCategory ? categoryMeta[category] : null;
-  const subs = isCategory ? subcategories[category] : null;
+  const meta = isCategory
+    ? { title: categoryMap.get(category)!.label, blurb: categoryMap.get(category)!.blurb }
+    : null;
+  const subs = isCategory
+    ? categoryMap.get(category)!.subcategories
+    : null;
 
-  const all = await getAllProducts();
-  const byCategory = (c: Product["category"]) =>
-    all.filter((p) => p.category === c);
+  const shopFilters = [
+    { label: "All", value: "all" },
+    ...dbCategories.map((c) => ({ label: c.label, value: c.slug })),
+    { label: "Collections", value: "collections" },
+  ];
+  const shopCategories = dbCategories.map((c) => ({
+    label: c.label,
+    value: c.slug,
+    href: `/shop?category=${c.slug}`,
+    blurb: c.blurb,
+  }));
+  const byCategory = (c: string) => all.filter((p) => p.category === c);
   const list: Product[] = isCategory
     ? await getProductsBySubcategory(category as Product["category"], sub)
     : all;
@@ -99,7 +114,7 @@ export default async function ShopPage({
       {!isCategory && !isCollections && (
         <div className="mt-10 grid gap-5 md:grid-cols-3">
           {shopCategories.map((card) => {
-            const inCategory = byCategory(card.value as Product["category"]);
+            const inCategory = byCategory(card.value);
             const count = inCategory.length;
             return (
               <Link

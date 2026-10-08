@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { CollectionCard } from "@/components/collections/collection-card";
-import { collections } from "@/lib/collections";
+import { getCollections } from "@/lib/catalog";
 
 export const metadata: Metadata = {
   title: "Collections",
@@ -9,7 +9,8 @@ export const metadata: Metadata = {
     "Curated editorial collections from ZORAEL & CO. — for every chapter of your story.",
 };
 
-export default function CollectionsPage() {
+export default async function CollectionsPage() {
+  const collections = await getCollections();
   return (
     <div className="container-zorael py-8 lg:py-12">
       <Breadcrumbs

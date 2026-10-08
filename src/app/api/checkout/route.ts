@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getGateway } from "@/lib/payments";
 import { priceCart, type CartLineInput } from "@/lib/pricing";
 import { getOrderStore } from "@/lib/orders/store";
+import { validateStock, decrementStock } from "@/lib/inventory";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -42,10 +43,55 @@ export async function POST(request: Request) {
     );
   }
 
+  // ── Stock validation ────────────────────────────────────────
+  const stockCheck = await validateStock(
+    cart.lines.map((l) => ({
+      productId: l.productId,
+      quantity: l.quantity,
+      size: l.size,
+      color: l.color,
+    })),
+  );
+  if (!stockCheck.valid) {
+    return NextResponse.json(
+      {
+        error: "Some items are out of stock or have insufficient quantity.",
+        stockErrors: stockCheck.errors.map((e) => ({
+          productId: e.productId,
+          size: e.size,
+          color: e.color,
+          requested: e.requested,
+          available: e.available,
+          reason: e.reason,
+        })),
+      },
+      { status: 409 },
+    );
+  }
+
   const store = getOrderStore();
 
   // Cash on delivery: no gateway call — order goes straight to pending.
+  // Decrement stock immediately since COD orders are confirmed on placement.
   if (method === "cod") {
+    const stockResult = await decrementStock(
+      cart.lines.map((l) => ({
+        productId: l.productId,
+        quantity: l.quantity,
+        size: l.size,
+        color: l.color,
+      })),
+    );
+    if (!stockResult.success) {
+      return NextResponse.json(
+        {
+          error: "Some items went out of stock while you were checking out.",
+          outOfStock: stockResult.failedLines.map((l) => l.productId),
+        },
+        { status: 409 },
+      );
+    }
+
     const order = await store.create({
       cart,
       method,

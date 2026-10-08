@@ -41,6 +41,21 @@ const ownRows = (table: string) =>
 const ts = (name: string) =>
   timestamp(name, { withTimezone: true }).notNull().defaultNow();
 
+/** Product categories — managed via the admin panel. */
+export const categories = pgTable(
+  "categories",
+  {
+    slug: text("slug").primaryKey(),
+    label: text("label").notNull(),
+    blurb: text("blurb").notNull().default(""),
+    sortOrder: integer("sort_order").notNull().default(0),
+    subcategories: jsonb("subcategories").$type<string[]>().notNull().default([]),
+    isPublished: boolean("is_published").notNull().default(true),
+    createdAt: ts("created_at"),
+  },
+  () => [publicRead("categories")],
+).enableRLS();
+
 /**
  * Catalog. The storefront reads products from here (via `src/lib/catalog.ts`),
  * falling back to the static `src/lib/products.ts` data when no database is
@@ -319,6 +334,7 @@ export const orderEvents = pgTable(
   (t) => [index("order_events_order_idx").on(t.orderId)],
 ).enableRLS();
 
+export type CategoryRow = typeof categories.$inferSelect;
 export type ProductRow = typeof products.$inferSelect;
 export type VariantRow = typeof productVariants.$inferSelect;
 export type ProfileRow = typeof profiles.$inferSelect;

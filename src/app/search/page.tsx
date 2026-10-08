@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { SearchView } from "@/components/search/search-view";
+import { getCollections } from "@/lib/catalog";
 
 export const metadata: Metadata = {
   title: "Search",
   description: "Search the ZORAEL & CO. collections.",
 };
 
-export default function SearchPage() {
+export default async function SearchPage() {
+  const collections = await getCollections();
   return (
     <Suspense
       fallback={
@@ -17,7 +19,7 @@ export default function SearchPage() {
         </div>
       }
     >
-      <SearchView />
+      <SearchView collections={collections} />
     </Suspense>
   );
 }

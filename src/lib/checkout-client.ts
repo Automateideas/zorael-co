@@ -13,10 +13,20 @@ export type CheckoutRequest = {
   address?: Record<string, string>;
 };
 
+export type StockError = {
+  productId: string;
+  size?: string;
+  color?: string;
+  requested: number;
+  available: number;
+  reason: string;
+};
+
 export type CheckoutResult =
   | { status: "paid"; orderId: string }
   | { status: "pending"; orderId: string } // e.g. Cash on Delivery
   | { status: "redirect"; url: string }
+  | { status: "out_of_stock"; stockErrors: StockError[] }
   | { status: "failed"; error: string };
 
 type CreateOrderResponse = {
@@ -31,15 +41,35 @@ type CreateOrderResponse = {
   error?: string;
 };
 
+type ApiError = { error?: string; stockErrors?: StockError[] };
+
 async function postJSON<T>(url: string, body: unknown): Promise<T> {
   const res = await fetch(url, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify(body),
   });
-  const data = (await res.json()) as T & { error?: string };
-  if (!res.ok) throw new Error(data.error || `Request failed: ${res.status}`);
+  const data = (await res.json()) as T & ApiError;
+  if (!res.ok) {
+    if (res.status === 409 && data.stockErrors) {
+      const err = new StockValidationError(
+        data.error || "Items out of stock",
+        data.stockErrors,
+      );
+      throw err;
+    }
+    throw new Error(data.error || `Request failed: ${res.status}`);
+  }
   return data;
+}
+
+class StockValidationError extends Error {
+  stockErrors: StockError[];
+  constructor(message: string, stockErrors: StockError[]) {
+    super(message);
+    this.name = "StockValidationError";
+    this.stockErrors = stockErrors;
+  }
 }
 
 export async function startCheckout(
@@ -49,6 +79,9 @@ export async function startCheckout(
   try {
     order = await postJSON<CreateOrderResponse>("/api/checkout", req);
   } catch (err) {
+    if (err instanceof StockValidationError) {
+      return { status: "out_of_stock", stockErrors: err.stockErrors };
+    }
     return {
       status: "failed",
       error: err instanceof Error ? err.message : "Checkout failed",

@@ -28,11 +28,11 @@ Key findings:
 - [x] Run `db:migrate` against Supabase; run `db:seed`.
 - [ ] Add `SUPABASE_SERVICE_ROLE_KEY` (server only, never `NEXT_PUBLIC_`).
 - [x] Enable Row Level Security on every table; write policies.
-- [ ] Add `proxy.ts` (Next 16) to refresh Supabase sessions.
+- [x] Add `proxy.ts` (Next 16) to refresh Supabase sessions.
 - [x] Supabase browser + server clients (`src/lib/supabase/`).
 
 ## Phase 1 — Data layer
-- [x] Move catalog from `products.ts` to DB (`src/lib/catalog.ts`, static fallback). Caching/ISR tags still to add.
+- [x] Move catalog from `products.ts` to DB (`src/lib/catalog.ts`, static fallback). Cached via `unstable_cache` (tag `catalog`, 5 min); collections now DB-backed.
 - [x] Extend schema: `categories`, `collections`, `product_variants` (size/color/SKU), `inventory`, `profiles`, `addresses`, `wishlists`, `coupons`, `reviews`, `newsletter_subscribers`, `order_events`.
 - [x] Add `user_id` to `orders`; richer statuses (confirmed, packed, shipped, delivered, cancelled, returned, refunded).
 - [ ] Product images in Supabase Storage (replace external image URLs).
@@ -92,7 +92,7 @@ Key findings:
 - [ ] Audit log of admin actions.
 
 ## Phase 7 — Content & marketing
-- [ ] Persist newsletter signups (table + double opt-in email).
+- [~] Newsletter signups persisted (`/api/newsletter`); double opt-in email still pending.
 - [ ] Transactional email provider (Resend/SES): welcome, order confirmation, shipping, reset.
 - [ ] Reviews & ratings tied to verified purchases.
 - [ ] Real product photography and copy (CONTENT.md).

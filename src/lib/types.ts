@@ -1,10 +1,10 @@
-export type Category = "clothes" | "jewelry" | "hand-bags" | "collections";
+export type Category = string;
 
 export type Product = {
   id: string;
   slug: string;
   name: string;
-  category: Exclude<Category, "collections">;
+  category: string;
   subcategory?: string;
   collection?: string;
   price: number;

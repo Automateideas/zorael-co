@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import { Inter, Playfair_Display, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SITE } from "@/lib/site";
@@ -56,24 +57,27 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const hdrs = await headers();
+  const pathname = hdrs.get("x-pathname") ?? "";
+  const isAdmin = pathname.startsWith("/admin");
+
   return (
     <html
       lang="en"
       className={`${inter.variable} ${playfair.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body
-        className="flex min-h-full flex-col bg-ivory"
-        data-new-gr-c-s-check-loaded="14.1333.0"
-        data-gr-ext-installed=""
-        cz-shortcut-listen="true"
-      >
-        <StoreProvider>
-          <SiteHeader />
-          <main className="flex-1 pb-20 lg:pb-0">{children}</main>
-          <SiteFooter />
-          <MobileBottomNav />
-        </StoreProvider>
+      <body className="flex min-h-full flex-col bg-ivory">
+        {isAdmin ? (
+          children
+        ) : (
+          <StoreProvider>
+            <SiteHeader />
+            <main className="flex-1 pb-20 lg:pb-0">{children}</main>
+            <SiteFooter />
+            <MobileBottomNav />
+          </StoreProvider>
+        )}
         <ServiceWorkerRegister />
       </body>
     </html>

@@ -8,11 +8,11 @@ import { ProductGrid } from "@/components/product/product-grid";
 import { Media } from "@/components/media";
 import type { Product } from "@/lib/types";
 import { popularSearches } from "@/lib/site";
-import { collections } from "@/lib/collections";
+import type { Collection } from "@/lib/types";
 
 const RECENT_KEY = "zorael.recent-searches.v1";
 
-export function SearchView() {
+export function SearchView({ collections }: { collections: Collection[] }) {
   const router = useRouter();
   const params = useSearchParams();
   const initial = params.get("q") ?? "";

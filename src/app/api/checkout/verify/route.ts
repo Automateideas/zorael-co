@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getGateway } from "@/lib/payments";
 import { getOrderStore } from "@/lib/orders/store";
+import { decrementStock } from "@/lib/inventory";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -50,15 +51,28 @@ export async function POST(request: Request) {
     signature,
   });
 
+  const previousStatus = order.status;
   const updated = await store.update(orderId, {
     status: result.verified ? "paid" : "failed",
     providerPaymentId,
-  });
+  }, "verify");
 
   if (!result.verified) {
     return NextResponse.json(
       { verified: false, reason: result.reason ?? "verification_failed" },
       { status: 400 },
+    );
+  }
+
+  // Decrement stock on first successful verification (not COD — already done).
+  if (previousStatus !== "paid" && order.method !== "cod") {
+    await decrementStock(
+      order.cart.lines.map((l) => ({
+        productId: l.productId,
+        quantity: l.quantity,
+        size: l.size,
+        color: l.color,
+      })),
     );
   }
 
