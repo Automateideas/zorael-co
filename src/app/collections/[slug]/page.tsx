@@ -4,7 +4,7 @@ import { Breadcrumbs } from "@/components/breadcrumbs";
 import { ProductGrid } from "@/components/product/product-grid";
 import { Media } from "@/components/media";
 import { collections, getCollection } from "@/lib/collections";
-import { products } from "@/lib/products";
+import { getProductsByIds } from "@/lib/catalog";
 
 type Params = Promise<{ slug: string }>;
 
@@ -31,7 +31,11 @@ export default async function CollectionPage({ params }: { params: Params }) {
   const collection = getCollection(slug);
   if (!collection) notFound();
 
-  const items = products.filter((p) => collection.products.includes(p.id));
+  const found = await getProductsByIds(collection.products);
+  // Keep the curated order from the collection definition.
+  const items = collection.products
+    .map((id) => found.find((p) => p.id === id))
+    .filter((p): p is NonNullable<typeof p> => Boolean(p));
 
   return (
     <div>

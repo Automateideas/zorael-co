@@ -3,6 +3,7 @@ import { config } from "dotenv";
 
 // Load local env for CLI commands (generate / migrate / studio / seed).
 config({ path: ".env.local" });
+config({ path: ".env" });
 
 export default defineConfig({
   schema: "./src/db/schema.ts",

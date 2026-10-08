@@ -8,6 +8,13 @@
       "when": 1789758241976,
       "tag": "0000_cooing_tyger_tiger",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791452830917,
+      "tag": "0001_woozy_pet_avengers",
+      "breakpoints": true
     }
   ]
 }

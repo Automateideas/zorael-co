@@ -25,6 +25,7 @@ function toOrder(row: OrderRow, items: OrderItemRow[]): Order {
   };
   return {
     id: row.id,
+    userId: row.userId ?? undefined,
     status: row.status,
     cart,
     method: row.method,
@@ -53,6 +54,7 @@ export class DrizzleOrderStore implements OrderStore {
     await db.transaction(async (tx) => {
       await tx.insert(orders).values({
         id,
+        userId: input.userId,
         status: input.status ?? "created",
         method: input.method,
         provider: input.provider,

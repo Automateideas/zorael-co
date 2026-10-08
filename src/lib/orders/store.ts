@@ -1,11 +1,14 @@
 import { randomUUID } from "node:crypto";
 import type { PricedCart } from "../pricing";
+import type { OrderStatusDb } from "@/db/schema";
 import { DrizzleOrderStore } from "./drizzle-store";
 
-export type OrderStatus = "created" | "pending" | "paid" | "failed";
+export type OrderStatus = OrderStatusDb;
 
 export type Order = {
   id: string;
+  /** Supabase auth user id; undefined for guest orders. */
+  userId?: string;
   status: OrderStatus;
   cart: PricedCart;
   method: string;
@@ -40,6 +43,7 @@ class InMemoryOrderStore implements OrderStore {
     const now = new Date().toISOString();
     const order: Order = {
       id: `zc_${randomUUID().slice(0, 12)}`,
+      userId: input.userId,
       status: input.status ?? "created",
       cart: input.cart,
       method: input.method,

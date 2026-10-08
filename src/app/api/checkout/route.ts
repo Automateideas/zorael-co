@@ -34,7 +34,7 @@ export async function POST(request: Request) {
   };
 
   // Trusted, server-side pricing.
-  const cart = priceCart(items);
+  const cart = await priceCart(items);
   if (cart.lines.length === 0 || cart.total <= 0) {
     return NextResponse.json(
       { error: "No valid items in cart" },

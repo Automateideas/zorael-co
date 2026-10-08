@@ -1,12 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Heart } from "lucide-react";
 import { useStore } from "@/components/providers/store-provider";
 import { ProductGrid } from "@/components/product/product-grid";
 import { Breadcrumbs } from "@/components/breadcrumbs";
-import { products } from "@/lib/products";
+import type { Product } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const tabs = [
@@ -20,9 +20,28 @@ export default function WishlistPage() {
   const { wishlist, ready } = useStore();
   const [tab, setTab] = useState("all");
 
+  const [catalog, setCatalog] = useState<Product[]>([]);
+  const wishlistKey = wishlist.join(",");
+
+  useEffect(() => {
+    if (!wishlistKey) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setCatalog([]);
+      return;
+    }
+    const controller = new AbortController();
+    fetch(`/api/products?ids=${encodeURIComponent(wishlistKey)}`, {
+      signal: controller.signal,
+    })
+      .then((r) => (r.ok ? r.json() : { products: [] }))
+      .then((d: { products: Product[] }) => setCatalog(d.products))
+      .catch(() => {});
+    return () => controller.abort();
+  }, [wishlistKey]);
+
   const saved = useMemo(
-    () => products.filter((p) => wishlist.includes(p.id)),
-    [wishlist],
+    () => catalog.filter((p) => wishlist.includes(p.id)),
+    [catalog, wishlist],
   );
   const filtered = useMemo(
     () => (tab === "all" ? saved : saved.filter((p) => p.category === tab)),

@@ -6,11 +6,7 @@ import { FilterPills } from "@/components/shop/filter-pills";
 import { ProductGrid } from "@/components/product/product-grid";
 import { CollectionCard } from "@/components/collections/collection-card";
 import { Media } from "@/components/media";
-import {
-  products,
-  getProductsByCategory,
-  getProductsBySubcategory,
-} from "@/lib/products";
+import { getAllProducts, getProductsBySubcategory } from "@/lib/catalog";
 import { collections } from "@/lib/collections";
 import {
   shopFilters,
@@ -44,10 +40,12 @@ export default async function ShopPage({
   const meta = isCategory ? categoryMeta[category] : null;
   const subs = isCategory ? subcategories[category] : null;
 
-  let list: Product[] = products;
-  if (isCategory) {
-    list = getProductsBySubcategory(category as Product["category"], sub);
-  }
+  const all = await getAllProducts();
+  const byCategory = (c: Product["category"]) =>
+    all.filter((p) => p.category === c);
+  const list: Product[] = isCategory
+    ? await getProductsBySubcategory(category as Product["category"], sub)
+    : all;
 
   return (
     <div className="container-zorael py-8 lg:py-12">
@@ -101,9 +99,8 @@ export default async function ShopPage({
       {!isCategory && !isCollections && (
         <div className="mt-10 grid gap-5 md:grid-cols-3">
           {shopCategories.map((card) => {
-            const count = getProductsByCategory(
-              card.value as Product["category"],
-            ).length;
+            const inCategory = byCategory(card.value as Product["category"]);
+            const count = inCategory.length;
             return (
               <Link
                 key={card.value}
@@ -112,10 +109,7 @@ export default async function ShopPage({
               >
                 <div className="relative aspect-[16/10]">
                   <Media
-                    src={
-                      getProductsByCategory(card.value as Product["category"])[0]
-                        ?.images[0] ?? ""
-                    }
+                    src={inCategory[0]?.images[0] ?? ""}
                     alt={card.label}
                     sizes="(max-width:768px) 100vw, 33vw"
                     className="h-full w-full"

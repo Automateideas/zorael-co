@@ -1,4 +1,4 @@
-import { products } from "./products";
+import { getProductsByIds } from "./catalog";
 import { paymentConfig } from "./payments/config";
 
 export type CartLineInput = {
@@ -34,12 +34,16 @@ export type PricedCart = {
  * prices are ignored — only product ids and quantities are trusted. This is the
  * single source of truth for what a customer is charged.
  */
-export function priceCart(items: CartLineInput[]): PricedCart {
+export async function priceCart(items: CartLineInput[]): Promise<PricedCart> {
   const { currency, shippingFee, freeShippingThreshold } = paymentConfig.store;
+
+  const catalog = await getProductsByIds([
+    ...new Set(items.map((i) => i.productId)),
+  ]);
 
   const lines: PricedLine[] = [];
   for (const item of items) {
-    const product = products.find((p) => p.id === item.productId);
+    const product = catalog.find((p) => p.id === item.productId);
     if (!product) continue;
     const quantity = Math.max(1, Math.min(99, Math.floor(item.quantity) || 1));
     const lineTotal = product.price * quantity;

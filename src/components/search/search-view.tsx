@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Search, X, TrendingUp } from "lucide-react";
 import { ProductGrid } from "@/components/product/product-grid";
 import { Media } from "@/components/media";
-import { searchProducts } from "@/lib/products";
+import type { Product } from "@/lib/types";
 import { popularSearches } from "@/lib/site";
 import { collections } from "@/lib/collections";
 
@@ -42,10 +42,33 @@ export function SearchView() {
     }
   }, []);
 
-  const results = useMemo(
-    () => (query.trim() ? searchProducts(query) : []),
-    [query],
-  );
+  const [results, setResults] = useState<Product[]>([]);
+
+  useEffect(() => {
+    const q = query.trim();
+    if (!q) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setResults([]);
+      return;
+    }
+    const controller = new AbortController();
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/products?q=${encodeURIComponent(q)}`, {
+          signal: controller.signal,
+        });
+        if (!res.ok) return;
+        const data = (await res.json()) as { products: Product[] };
+        setResults(data.products);
+      } catch {
+        /* aborted or offline — keep the previous results */
+      }
+    }, 200);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [query]);
 
   const commit = (value: string) => {
     const v = value.trim();

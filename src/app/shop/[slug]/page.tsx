@@ -7,17 +7,17 @@ import { ProductPurchase } from "@/components/product/product-purchase";
 import { ProductGrid } from "@/components/product/product-grid";
 import { SectionHeading } from "@/components/section-heading";
 import {
+  getAllProducts,
   getProduct,
   getRelatedProducts,
-  products,
-} from "@/lib/products";
+} from "@/lib/catalog";
 import { categoryMeta } from "@/lib/site";
 import { formatPrice } from "@/lib/utils";
 
 type Params = Promise<{ slug: string }>;
 
-export function generateStaticParams() {
-  return products.map((p) => ({ slug: p.slug }));
+export async function generateStaticParams() {
+  return (await getAllProducts()).map((p) => ({ slug: p.slug }));
 }
 
 export async function generateMetadata({
@@ -26,7 +26,7 @@ export async function generateMetadata({
   params: Params;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const product = getProduct(slug);
+  const product = await getProduct(slug);
   if (!product) return { title: "Not found" };
   return {
     title: product.name,
@@ -41,10 +41,10 @@ export async function generateMetadata({
 
 export default async function ProductPage({ params }: { params: Params }) {
   const { slug } = await params;
-  const product = getProduct(slug);
+  const product = await getProduct(slug);
   if (!product) notFound();
 
-  const related = getRelatedProducts(product);
+  const related = await getRelatedProducts(product);
   const catMeta = categoryMeta[product.category];
 
   const sections = [

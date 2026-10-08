@@ -3,11 +3,11 @@ import { ArrowRight } from "lucide-react";
 import { SectionHeading } from "@/components/section-heading";
 import { ProductCard } from "@/components/product/product-card";
 import { Media } from "@/components/media";
-import { getNewArrivals } from "@/lib/products";
+import { getNewArrivals } from "@/lib/catalog";
 import { img, PHOTO } from "@/lib/images";
 
-export function NewArrivals() {
-  const products = getNewArrivals(6);
+export async function NewArrivals() {
+  const products = await getNewArrivals(6);
 
   return (
     <section className="container-zorael py-14 lg:py-20">
