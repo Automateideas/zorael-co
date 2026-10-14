@@ -11,9 +11,9 @@ import { cn } from "@/lib/utils";
 
 const tabs = [
   { label: "All", value: "all" },
-  { label: "Clothes", value: "clothes" },
-  { label: "Jewellery", value: "jewelry" },
-  { label: "Hand Bags", value: "hand-bags" },
+  { label: "Women", value: "women" },
+  { label: "Accessories", value: "accessories" },
+  { label: "Brand Collection", value: "brand-collection" },
 ];
 
 export default function WishlistPage() {

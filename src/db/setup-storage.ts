@@ -3,7 +3,7 @@
  *
  *   npx tsx src/db/setup-storage.ts
  *
- * Requires SUPABASE_SECRET_KEY in .env.local.
+ * Requires NEXT_PUBLIC_SUPABASE_SECRET_KEY in .env.local.
  * Idempotent — safe to re-run.
  */
 import { config } from "dotenv";

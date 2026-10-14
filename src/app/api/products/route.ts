@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 
 /**
  * GET /api/products
- *   ?category=clothes|jewelry|hand-bags
+ *   ?category=<slug>
  *   ?q=<search term>
  *   ?ids=<comma-separated product ids>
  * Read-only catalog endpoint backing the storefront.
@@ -27,11 +27,7 @@ export async function GET(request: Request) {
     list = await searchProducts(q.slice(0, 100));
   } else if (ids) {
     list = await getProductsByIds(ids.split(",").filter(Boolean).slice(0, 100));
-  } else if (
-    category === "clothes" ||
-    category === "jewelry" ||
-    category === "hand-bags"
-  ) {
+  } else if (category && /^[a-z0-9-]+$/.test(category)) {
     list = await getProductsByCategory(category);
   } else {
     list = await getAllProducts();

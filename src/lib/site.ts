@@ -51,45 +51,45 @@ export type ShopCategory = {
 
 export const shopCategories: ShopCategory[] = [
   {
-    label: "Clothes",
-    value: "clothes",
-    href: "/shop?category=clothes",
+    label: "Women",
+    value: "women",
+    href: "/shop?category=women",
     blurb: "Elegant. Timeless. You.",
   },
   {
-    label: "Jewellery",
-    value: "jewelry",
-    href: "/shop?category=jewelry",
-    blurb: "Pieces that tell your story.",
+    label: "Accessories",
+    value: "accessories",
+    href: "/shop?category=accessories",
+    blurb: "The finishing touch.",
   },
   {
-    label: "Hand Bags",
-    value: "hand-bags",
-    href: "/shop?category=hand-bags",
-    blurb: "Luxury in your hands.",
+    label: "Brand Collection",
+    value: "brand-collection",
+    href: "/shop?category=brand-collection",
+    blurb: "Curated edits for every story.",
   },
 ];
 
-/** The filter pills shown on /shop. */
+/** The filter pills shown on /shop (static fallback — overridden by DB categories). */
 export const shopFilters = [
   { label: "All", value: "all" },
-  { label: "Clothes", value: "clothes" },
-  { label: "Jewellery", value: "jewelry" },
-  { label: "Hand Bags", value: "hand-bags" },
+  { label: "Women", value: "women" },
+  { label: "Accessories", value: "accessories" },
+  { label: "Brand Collection", value: "brand-collection" },
   { label: "Collections", value: "collections" },
 ] as const;
 
-/** Subcategory filter pills per category. */
+/** Subcategory filter pills per category (static fallback). */
 export const subcategories: Record<string, string[]> = {
-  clothes: ["All", "Dresses", "Sarees", "Lehengas", "Co-ords"],
-  jewelry: ["All", "Necklaces", "Earrings", "Rings", "Bracelets"],
-  "hand-bags": ["All", "Shoulder Bags", "Tote Bags", "Top Handle Bags"],
+  women: ["Shop All", "CO-Ords Set", "Lehenga Set", "Sarees", "Suit Sets", "Capes & Jackets", "Dresses & Jumpsuit Sets", "Skirt & Trouser Set", "Dhoti Set", "Gowns"],
+  accessories: ["Shop All Accessories", "Bags", "Jewellery"],
+  "brand-collection": ["The Signature Edit", "The Indian Edit", "The Occasion Edit"],
 };
 
 export const categoryMeta: Record<string, { title: string; blurb: string }> = {
-  clothes: { title: "Clothes", blurb: "Elegant. Timeless. You." },
-  jewelry: { title: "Jewellery", blurb: "Pieces that tell your story." },
-  "hand-bags": { title: "Hand Bags", blurb: "Luxury in your hands." },
+  women: { title: "Women", blurb: "Elegant. Timeless. You." },
+  accessories: { title: "Accessories", blurb: "The finishing touch." },
+  "brand-collection": { title: "Brand Collection", blurb: "Curated edits for every story." },
 };
 
 export const popularSearches = [

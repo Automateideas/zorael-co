@@ -2,6 +2,7 @@ import { paymentConfig } from "./config";
 import { MockGateway } from "./mock-gateway";
 import { GenericHttpGateway } from "./http-gateway";
 import { RazorpayGateway } from "./razorpay-gateway";
+import { PayUGateway } from "./payu-gateway";
 import type { PaymentGateway } from "./types";
 
 let cached: PaymentGateway | null = null;
@@ -16,6 +17,9 @@ export function getGateway(): PaymentGateway {
   switch (paymentConfig.provider) {
     case "razorpay":
       cached = new RazorpayGateway();
+      break;
+    case "payu":
+      cached = new PayUGateway();
       break;
     case "http":
       cached = new GenericHttpGateway();

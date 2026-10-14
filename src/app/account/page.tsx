@@ -10,8 +10,11 @@ import {
   CreditCard,
   Settings,
   User,
+  LogOut,
 } from "lucide-react";
 import { Breadcrumbs } from "@/components/breadcrumbs";
+import { getSession, getProfile } from "@/lib/auth";
+import { LogoutButton } from "./logout-button";
 
 export const metadata: Metadata = {
   title: "Account",
@@ -19,31 +22,19 @@ export const metadata: Metadata = {
 };
 
 const menu = [
-  { label: "My Orders", href: "/account", Icon: Package, note: "Track & review" },
-  {
-    label: "Wishlist",
-    href: "/account/wishlist",
-    Icon: Heart,
-    note: "Saved pieces",
-  },
-  { label: "Address Book", href: "/account", Icon: MapPin, note: "Delivery addresses" },
-  {
-    label: "Payment Methods",
-    href: "/account",
-    Icon: CreditCard,
-    note: "Saved cards & UPI",
-  },
+  { label: "My Orders", href: "/account/orders", Icon: Package, note: "Track & review" },
+  { label: "Wishlist", href: "/account/wishlist", Icon: Heart, note: "Saved pieces" },
+  { label: "Address Book", href: "/account/addresses", Icon: MapPin, note: "Delivery addresses" },
+  { label: "Payment Methods", href: "/account", Icon: CreditCard, note: "Saved cards & UPI" },
   { label: "About Us", href: "/about", Icon: Info, note: "Our story & atelier" },
-  {
-    label: "Help & Support",
-    href: "/about#support",
-    Icon: HelpCircle,
-    note: "We're here to help",
-  },
+  { label: "Help & Support", href: "/about#support", Icon: HelpCircle, note: "We're here to help" },
   { label: "Settings", href: "/account", Icon: Settings, note: "Preferences" },
 ];
 
-export default function AccountPage() {
+export default async function AccountPage() {
+  const session = await getSession();
+  const profile = session ? await getProfile() : null;
+
   return (
     <div className="container-zorael py-8 lg:py-12">
       <Breadcrumbs
@@ -54,36 +45,53 @@ export default function AccountPage() {
         {/* Profile / sign-in card */}
         <aside>
           <div className="rounded-lg border border-border bg-white p-6">
-            <div className="flex items-center gap-4">
-              <span className="flex size-14 items-center justify-center rounded-full bg-cream text-muted-gold">
-                <User className="size-6" strokeWidth={1.25} />
-              </span>
-              <div>
-                <p className="font-serif text-lg tracking-tight text-charcoal">
-                  Welcome to Zorael
-                </p>
-                <p className="text-xs text-charcoal/55">
-                  Sign in to view your orders & wishlist
-                </p>
-              </div>
-            </div>
-            <div className="mt-6 space-y-3">
-              <button
-                type="button"
-                className="h-11 w-full rounded-full bg-charcoal text-sm font-medium text-ivory transition-colors hover:bg-black"
-              >
-                Sign In
-              </button>
-              <button
-                type="button"
-                className="h-11 w-full rounded-full border border-border text-sm font-medium text-charcoal transition-colors hover:border-charcoal/50"
-              >
-                Create Account
-              </button>
-            </div>
-            <p className="mt-4 text-center text-[0.7rem] leading-relaxed text-charcoal/45">
-              This is a front-end demonstration — no account backend is connected.
-            </p>
+            {session ? (
+              <>
+                <div className="flex items-center gap-4">
+                  <span className="flex size-14 items-center justify-center rounded-full bg-cream text-muted-gold">
+                    <User className="size-6" strokeWidth={1.25} />
+                  </span>
+                  <div>
+                    <p className="font-serif text-lg tracking-tight text-charcoal">
+                      {profile?.fullName || "Welcome back"}
+                    </p>
+                    <p className="text-xs text-charcoal/55">
+                      +91 {session.phone}
+                    </p>
+                    {profile?.email && (
+                      <p className="text-xs text-charcoal/45">{profile.email}</p>
+                    )}
+                  </div>
+                </div>
+                <div className="mt-6">
+                  <LogoutButton />
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center gap-4">
+                  <span className="flex size-14 items-center justify-center rounded-full bg-cream text-muted-gold">
+                    <User className="size-6" strokeWidth={1.25} />
+                  </span>
+                  <div>
+                    <p className="font-serif text-lg tracking-tight text-charcoal">
+                      Welcome to Zorael
+                    </p>
+                    <p className="text-xs text-charcoal/55">
+                      Sign in to view your orders & wishlist
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-6">
+                  <Link
+                    href="/account/login"
+                    className="flex h-11 w-full items-center justify-center rounded-full bg-charcoal text-sm font-medium text-ivory transition-colors hover:bg-black"
+                  >
+                    Sign In
+                  </Link>
+                </div>
+              </>
+            )}
           </div>
         </aside>
 

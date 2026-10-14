@@ -5,25 +5,25 @@ import { img, PHOTO } from "@/lib/images";
 
 const cards = [
   {
-    title: "Clothes",
+    title: "Women",
     blurb: "Elegant. Timeless. You.",
-    href: "/shop?category=clothes",
+    href: "/shop?category=women",
     image: img(PHOTO.ivoryDress, 800, 900),
     alt: "Ivory embroidered dress",
   },
   {
-    title: "Jewellery",
-    blurb: "Pieces that tell your story.",
-    href: "/shop?category=jewelry",
+    title: "Accessories",
+    blurb: "The finishing touch.",
+    href: "/shop?category=accessories",
     image: img(PHOTO.necklaceGold, 800, 900),
-    alt: "Fine gold necklace",
+    alt: "Fine jewellery and bags",
   },
   {
-    title: "Hand Bags",
-    blurb: "Luxury in your hands.",
-    href: "/shop?category=hand-bags",
+    title: "Brand Collection",
+    blurb: "Curated edits for every story.",
+    href: "/shop?category=brand-collection",
     image: img(PHOTO.handbagHero, 800, 900),
-    alt: "Structured leather handbag",
+    alt: "Curated brand collection",
   },
 ];
 

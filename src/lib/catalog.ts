@@ -267,9 +267,9 @@ export type CategoryInfo = {
 };
 
 const STATIC_CATEGORIES: CategoryInfo[] = [
-  { slug: "clothes", label: "Clothes", blurb: "Elegant. Timeless. You.", subcategories: ["All", "Dresses", "Sarees", "Lehengas", "Co-ords"] },
-  { slug: "jewelry", label: "Jewellery", blurb: "Pieces that tell your story.", subcategories: ["All", "Necklaces", "Earrings", "Rings", "Bracelets"] },
-  { slug: "hand-bags", label: "Hand Bags", blurb: "Luxury in your hands.", subcategories: ["All", "Shoulder Bags", "Tote Bags", "Top Handle Bags"] },
+  { slug: "women", label: "Women", blurb: "Elegant. Timeless. You.", subcategories: ["Shop All", "CO-Ords Set", "Lehenga Set", "Sarees", "Suit Sets", "Capes & Jackets", "Dresses & Jumpsuit Sets", "Skirt & Trouser Set", "Dhoti Set", "Gowns"] },
+  { slug: "accessories", label: "Accessories", blurb: "The finishing touch.", subcategories: ["Shop All Accessories", "Bags", "Jewellery"] },
+  { slug: "brand-collection", label: "Brand Collection", blurb: "Curated edits for every story.", subcategories: ["The Signature Edit", "The Indian Edit", "The Occasion Edit"] },
 ];
 
 const queryCategories = cached("categories-list", async (): Promise<CategoryInfo[]> => {

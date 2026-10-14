@@ -57,9 +57,9 @@ type VariantRow = {
 type CategoryOption = { value: string; label: string };
 
 const DEFAULT_CATEGORIES: CategoryOption[] = [
-  { value: "clothes", label: "Clothes" },
-  { value: "jewelry", label: "Jewelry" },
-  { value: "hand-bags", label: "Hand Bags" },
+  { value: "women", label: "Women" },
+  { value: "accessories", label: "Accessories" },
+  { value: "brand-collection", label: "Brand Collection" },
 ];
 
 export function ProductEditor({
@@ -77,7 +77,7 @@ export function ProductEditor({
 
   const [name, setName] = useState(product?.name ?? "");
   const [slug, setSlug] = useState(product?.slug ?? "");
-  const [category, setCategory] = useState(product?.category ?? "clothes");
+  const [category, setCategory] = useState(product?.category ?? "women");
   const [subcategory, setSubcategory] = useState(product?.subcategory ?? "");
   const [collection, setCollection] = useState(product?.collection ?? "");
   const [price, setPrice] = useState(product?.price?.toString() ?? "");

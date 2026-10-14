@@ -30,12 +30,12 @@ export async function NewArrivals() {
           ))}
         </div>
 
-        {/* Jewellery feature card */}
+        {/* Accessories feature card */}
         <aside className="relative overflow-hidden rounded-lg bg-charcoal text-ivory">
           <div className="relative aspect-[4/5] lg:aspect-auto lg:h-full">
             <Media
               src={img(PHOTO.jewelleryFlat, 700, 900)}
-              alt="Jewellery collection"
+              alt="Accessories collection"
               sizes="(max-width:1024px) 100vw, 340px"
               className="h-full w-full"
             />
@@ -46,7 +46,7 @@ export async function NewArrivals() {
               The Finest Details
             </p>
             <h3 className="mt-3 font-serif text-3xl leading-tight tracking-tight">
-              Jewellery
+              Accessories
               <br />
               Collection
             </h3>
@@ -54,7 +54,7 @@ export async function NewArrivals() {
               Exquisite pieces for every occasion.
             </p>
             <Link
-              href="/shop?category=jewelry"
+              href="/shop?category=accessories"
               className="mt-6 inline-flex h-11 items-center gap-2 rounded-full bg-gold px-6 text-sm font-medium text-black transition-colors hover:bg-muted-gold"
             >
               Explore Collection

@@ -30,11 +30,7 @@ export default async function AdminDashboard() {
       {/* Stats grid */}
       {stats && (
         <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard
-            icon={Package}
-            label="Total Products"
-            value={stats.total}
-          />
+          <StatCard icon={Package} label="Total Products" value={stats.total} />
           <StatCard
             icon={ShoppingBag}
             label="Total Stock"
@@ -57,6 +53,25 @@ export default async function AdminDashboard() {
 
       {/* Quick links */}
       <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <Link
+          href="/admin/orders"
+          className="group flex items-center gap-4 rounded-lg border border-border bg-white p-5 transition-all hover:border-charcoal/20 hover:shadow-sm"
+        >
+          <span className="flex size-11 items-center justify-center rounded-lg bg-cream text-charcoal/60">
+            <ShoppingBag className="size-5" strokeWidth={1.5} />
+          </span>
+          <div className="flex-1">
+            <p className="text-sm font-medium text-charcoal">Orders</p>
+            <p className="mt-0.5 text-xs text-charcoal/50">
+              View & manage customer orders
+            </p>
+          </div>
+          <ArrowRight
+            className="size-4 text-charcoal/20 transition-colors group-hover:text-charcoal/50"
+            strokeWidth={1.5}
+          />
+        </Link>
+
         <Link
           href="/admin/products"
           className="group flex items-center gap-4 rounded-lg border border-border bg-white p-5 transition-all hover:border-charcoal/20 hover:shadow-sm"
@@ -137,12 +152,12 @@ export default async function AdminDashboard() {
               <span className="text-charcoal/70">Storage</span>
               <span
                 className={
-                  process.env.SUPABASE_SECRET_KEY
+                  process.env.NEXT_PUBLIC_SUPABASE_SECRET_KEY
                     ? "text-emerald-600"
                     : "text-amber-600"
                 }
               >
-                {process.env.SUPABASE_SECRET_KEY
+                {process.env.NEXT_PUBLIC_SUPABASE_SECRET_KEY
                   ? "Configured"
                   : "Secret key missing"}
               </span>

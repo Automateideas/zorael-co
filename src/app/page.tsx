@@ -15,22 +15,22 @@ export default function Home() {
       <NewArrivals />
       <EditorialBanner />
       <FeatureSplit
-        eyebrow="Fine Jewellery"
-        title="Pieces that tell your story."
-        copy="Warm gold, freshwater pearls and considered detail. Our jewellery is designed to be layered, kept, and passed on — quiet luxury for the everyday and the occasion alike."
-        ctaLabel="Explore Jewellery"
-        ctaHref="/shop?category=jewelry"
+        eyebrow="Accessories"
+        title="The finishing touch."
+        copy="Warm gold, freshwater pearls, structured leather and considered detail. Our accessories are designed to be layered, carried and kept — quiet luxury for the everyday and the occasion alike."
+        ctaLabel="Explore Accessories"
+        ctaHref="/shop?category=accessories"
         image={img(PHOTO.necklaceGold, 1000, 1250)}
         alt="Gold necklace close-up"
       />
       <FeatureSplit
-        eyebrow="Hand Bags"
-        title="Luxury in your hands."
-        copy="Structured leather, precise hardware, and forms that follow the body. Each bag is cut to a clean, quiet line — made to carry the day and last for years."
-        ctaLabel="Explore Hand Bags"
-        ctaHref="/shop?category=hand-bags"
+        eyebrow="Brand Collection"
+        title="Curated edits for every story."
+        copy="Signature pieces and seasonal edits, brought together with intention. Each collection is a considered chapter — designed to be discovered, worn and returned to."
+        ctaLabel="Explore Collections"
+        ctaHref="/shop?category=brand-collection"
         image={img(PHOTO.handbagHero, 1000, 1250)}
-        alt="Structured leather handbag"
+        alt="Curated brand collection"
         reverse
       />
       <BrandStory />

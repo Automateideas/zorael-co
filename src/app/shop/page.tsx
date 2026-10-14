@@ -17,7 +17,7 @@ import type { Product } from "@/lib/types";
 export const metadata: Metadata = {
   title: "Shop",
   description:
-    "Shop clothing, fine jewellery and hand bags from ZORAEL & CO. — considered pieces, made to last.",
+    "Shop women's fashion, accessories and curated collections from ZORAEL & CO. — considered pieces, made to last.",
 };
 
 type SearchParams = Promise<{ category?: string; sub?: string }>;
@@ -83,7 +83,7 @@ export default async function ShopPage({
             ? meta.blurb
             : isCollections
               ? "Curated for every chapter of your story."
-              : "Timeless pieces across clothing, jewellery and hand bags — explore the full house."}
+              : "Timeless pieces across fashion and accessories — explore the full house."}
         </p>
       </header>
 

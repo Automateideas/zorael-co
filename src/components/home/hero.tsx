@@ -24,10 +24,10 @@ const slides = [
     alt: "Editorial saree campaign",
   },
   {
-    eyebrow: "Fine Jewellery",
+    eyebrow: "Accessories",
     title: ["Pieces that", "tell your story."],
     copy: "Warm gold, considered detail, quietly commanding.",
-    cta: { label: "Discover Jewellery", href: "/shop?category=jewelry" },
+    cta: { label: "Discover Accessories", href: "/shop?category=accessories" },
     image: img(PHOTO.necklaceGold, 1800, 1000),
     alt: "Gold necklace close-up",
   },

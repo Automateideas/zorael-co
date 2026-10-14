@@ -7,9 +7,9 @@ const footerLinks = [
   {
     title: "Shop",
     links: [
-      { label: "Clothes", href: "/shop?category=clothes" },
-      { label: "Jewellery", href: "/shop?category=jewelry" },
-      { label: "Hand Bags", href: "/shop?category=hand-bags" },
+      { label: "Women", href: "/shop?category=women" },
+      { label: "Accessories", href: "/shop?category=accessories" },
+      { label: "Brand Collection", href: "/shop?category=brand-collection" },
       { label: "Collections", href: "/collections" },
     ],
   },
@@ -26,7 +26,7 @@ const footerLinks = [
     title: "Account",
     links: [
       { label: "My Account", href: "/account" },
-      { label: "Track Order", href: "/account" },
+      { label: "Track Order", href: "/account/orders" },
       { label: "Wishlist", href: "/account/wishlist" },
       { label: "Your Bag", href: "/bag" },
     ],

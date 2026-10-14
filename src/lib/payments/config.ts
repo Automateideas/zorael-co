@@ -3,7 +3,7 @@
  * Everything here is server-only. Never import this into a Client Component.
  */
 
-export type ProviderName = "mock" | "http" | "razorpay" | "stripe";
+export type ProviderName = "mock" | "http" | "razorpay" | "stripe" | "payu";
 
 export const paymentConfig = {
   /** Which gateway to use. Defaults to the safe local "mock". */
@@ -26,6 +26,12 @@ export const paymentConfig = {
     keySecret: process.env.RAZORPAY_KEY_SECRET ?? "",
     webhookSecret: process.env.RAZORPAY_WEBHOOK_SECRET ?? "",
     apiBase: "https://api.razorpay.com/v1",
+  },
+
+  /** PayU (INR — redirect-based checkout). */
+  payu: {
+    merchantKey: process.env.PAYU_MERCHANT_KEY ?? "",
+    merchantSalt: process.env.PAYU_MERCHANT_SALT ?? "",
   },
 
   /** Stripe placeholder (kept minimal — extend when needed). */

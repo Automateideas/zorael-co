@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { Inter, Playfair_Display, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SITE } from "@/lib/site";
+import { AuthProvider } from "@/components/providers/auth-provider";
 import { StoreProvider } from "@/components/providers/store-provider";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
@@ -67,16 +68,23 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${inter.variable} ${playfair.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col bg-ivory">
+      <body
+        className="flex min-h-full flex-col bg-ivory"
+        data-new-gr-c-s-check-loaded="14.1337.0"
+        data-gr-ext-installed=""
+        cz-shortcut-listen="true"
+      >
         {isAdmin ? (
           children
         ) : (
-          <StoreProvider>
-            <SiteHeader />
-            <main className="flex-1 pb-20 lg:pb-0">{children}</main>
-            <SiteFooter />
-            <MobileBottomNav />
-          </StoreProvider>
+          <AuthProvider>
+            <StoreProvider>
+              <SiteHeader />
+              <main className="flex-1 pb-20 lg:pb-0">{children}</main>
+              <SiteFooter />
+              <MobileBottomNav />
+            </StoreProvider>
+          </AuthProvider>
         )}
         <ServiceWorkerRegister />
       </body>

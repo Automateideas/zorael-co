@@ -26,9 +26,11 @@ const skuPart = (v: string) =>
   v.toUpperCase().replace(/[^A-Z0-9]+/g, "").slice(0, 6);
 
 const DEFAULT_CATEGORIES = [
-  { slug: "clothes", label: "Clothes", blurb: "Elegant. Timeless. You.", sortOrder: 0, subcategories: ["All", "Dresses", "Sarees", "Lehengas", "Co-ords"] },
-  { slug: "jewelry", label: "Jewellery", blurb: "Pieces that tell your story.", sortOrder: 1, subcategories: ["All", "Necklaces", "Earrings", "Rings", "Bracelets"] },
-  { slug: "hand-bags", label: "Hand Bags", blurb: "Luxury in your hands.", sortOrder: 2, subcategories: ["All", "Shoulder Bags", "Tote Bags", "Top Handle Bags"] },
+  { slug: "women", label: "Women", blurb: "Elegant. Timeless. You.", sortOrder: 0, subcategories: ["Shop All", "CO-Ords Set", "Lehenga Set", "Sarees", "Suit Sets", "Capes & Jackets", "Dresses & Jumpsuit Sets", "Skirt & Trouser Set", "Dhoti Set", "Gowns"] },
+  { slug: "men", label: "Men", blurb: "Coming Soon", sortOrder: 1, subcategories: ["Shop All", "Kurta Set", "Bandhgala Sets", "Shirts & T-Shirts", "Jackets"], isPublished: false },
+  { slug: "kids", label: "Kids", blurb: "Coming Soon", sortOrder: 2, subcategories: ["Shop All", "Girl's Dresses", "Party Dresses", "Ethnic Wear"], isPublished: false },
+  { slug: "accessories", label: "Accessories", blurb: "The finishing touch.", sortOrder: 3, subcategories: ["Shop All Accessories", "Bags", "Jewellery"] },
+  { slug: "brand-collection", label: "Brand Collection", blurb: "Curated edits for every story.", sortOrder: 4, subcategories: ["The Signature Edit", "The Indian Edit", "The Occasion Edit"] },
 ];
 
 async function main() {
