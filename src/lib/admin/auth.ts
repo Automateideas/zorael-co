@@ -13,11 +13,19 @@ export const ADMIN_COOKIE = "zorael_admin_session";
 export const SESSION_MAX_AGE = 60 * 60 * 24;
 
 /**
- * Returns the signing secret. Falls back to a dev-only default so the admin
- * panel works locally without extra env setup.
+ * Returns the signing secret. The dev fallback is a constant in this repo, so
+ * anyone could forge an admin cookie with it — refuse to run on it in
+ * production rather than accept forged sessions.
  */
 function getSecret(): string {
-  return process.env.ADMIN_SESSION_SECRET ?? "zorael-dev-admin-secret-change-me";
+  const secret = process.env.ADMIN_SESSION_SECRET;
+  if (secret) return secret;
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(
+      "ADMIN_SESSION_SECRET must be set in production — the dev fallback is public.",
+    );
+  }
+  return "zorael-dev-admin-secret-change-me";
 }
 
 /** Verify the supplied mobile + password against the hardcoded credentials. */

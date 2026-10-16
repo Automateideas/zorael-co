@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { Media } from "@/components/media";
@@ -49,13 +49,6 @@ export function Hero() {
     (dir: number) => setIndex((i) => (i + dir + count) % count),
     [count],
   );
-
-  useEffect(() => {
-    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
-    if (media.matches) return;
-    const t = setInterval(() => setIndex((i) => (i + 1) % count), 6000);
-    return () => clearInterval(t);
-  }, [count]);
 
   return (
     <section className="relative isolate overflow-hidden bg-cream">

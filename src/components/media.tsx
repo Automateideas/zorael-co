@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
 type MediaProps = {
@@ -37,6 +37,14 @@ export function Media({
 }: MediaProps) {
   const [failed, setFailed] = useState(false);
 
+  // A retry (or a carousel step) must clear a previous failure, otherwise one
+  // transient error pins the placeholder for the life of the component.
+  useEffect(() => setFailed(false), [src]);
+
+  // An empty src makes next/image throw and re-request the page; show the
+  // placeholder instead of handing it a URL it cannot resolve.
+  const showPlaceholder = failed || !src;
+
   return (
     <div
       className={cn(
@@ -44,7 +52,7 @@ export function Media({
         className,
       )}
     >
-      {failed ? (
+      {showPlaceholder ? (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-cream to-ivory p-4 text-center">
           <span className="font-serif text-lg tracking-tight text-charcoal/40">
             ZORAEL & CO.
