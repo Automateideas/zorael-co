@@ -152,12 +152,12 @@ export default async function AdminDashboard() {
               <span className="text-charcoal/70">Storage</span>
               <span
                 className={
-                  process.env.NEXT_PUBLIC_SUPABASE_SECRET_KEY
+                  process.env.SUPABASE_SECRET_KEY
                     ? "text-emerald-600"
                     : "text-amber-600"
                 }
               >
-                {process.env.NEXT_PUBLIC_SUPABASE_SECRET_KEY
+                {process.env.SUPABASE_SECRET_KEY
                   ? "Configured"
                   : "Secret key missing"}
               </span>

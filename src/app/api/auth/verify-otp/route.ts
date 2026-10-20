@@ -6,9 +6,12 @@ import {
   findOrCreateProfile,
 } from "@/lib/auth";
 
-const API_KEY = process.env.TWO_FACTOR_API_KEY;
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
+  const API_KEY = process.env.TWO_FACTOR_API_KEY;
+
   const { phone, sessionId, otp } = await request.json();
 
   if (!phone || !sessionId || !otp) {

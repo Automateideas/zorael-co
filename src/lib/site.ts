@@ -2,14 +2,14 @@ import type { Category } from "./types";
 
 export const SITE = {
   name: "ZORAEL & CO.",
-  shortName: "ZORAEL",
+  shortName: "ZORAEL & CO.",
   tagline: "Luxury Fashion House",
   motto: "Crafted for the Extraordinary.",
   description:
     "ZORAEL & CO. — a premium international luxury fashion house. Timeless clothing, fine jewellery and considered hand bags, designed with restraint and made to last.",
   freeShippingNote: "Free Shipping on Orders Above ₹ 15,000",
   announcement: "Timeless Pieces. Modern Elegance.",
-  url: "https://zorael.co",
+  url: "https://zoraelandco.com",
 } as const;
 
 /** Desktop primary navigation. */
@@ -81,15 +81,33 @@ export const shopFilters = [
 
 /** Subcategory filter pills per category (static fallback). */
 export const subcategories: Record<string, string[]> = {
-  women: ["Shop All", "CO-Ords Set", "Lehenga Set", "Sarees", "Suit Sets", "Capes & Jackets", "Dresses & Jumpsuit Sets", "Skirt & Trouser Set", "Dhoti Set", "Gowns"],
+  women: [
+    "Shop All",
+    "CO-Ords Set",
+    "Lehenga Set",
+    "Sarees",
+    "Suit Sets",
+    "Capes & Jackets",
+    "Dresses & Jumpsuit Sets",
+    "Skirt & Trouser Set",
+    "Dhoti Set",
+    "Gowns",
+  ],
   accessories: ["Shop All Accessories", "Bags", "Jewellery"],
-  "brand-collection": ["The Signature Edit", "The Indian Edit", "The Occasion Edit"],
+  "brand-collection": [
+    "The Signature Edit",
+    "The Indian Edit",
+    "The Occasion Edit",
+  ],
 };
 
 export const categoryMeta: Record<string, { title: string; blurb: string }> = {
   women: { title: "Women", blurb: "Elegant. Timeless. You." },
   accessories: { title: "Accessories", blurb: "The finishing touch." },
-  "brand-collection": { title: "Brand Collection", blurb: "Curated edits for every story." },
+  "brand-collection": {
+    title: "Brand Collection",
+    blurb: "Curated edits for every story.",
+  },
 };
 
 export const popularSearches = [

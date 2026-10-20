@@ -21,6 +21,15 @@ async function requireAdmin() {
   }
 }
 
+/** Matches the bucket's own allowlist in setup-storage. */
+const ALLOWED_IMAGE_TYPES: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+  "image/avif": "avif",
+};
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+
 function slugify(name: string) {
   return name
     .toLowerCase()
@@ -102,8 +111,16 @@ export async function uploadProductImages(
   const urls: string[] = [];
 
   for (const file of files) {
+    if (file.size > MAX_IMAGE_BYTES) {
+      throw new Error(`${file.name} is larger than 10 MB.`);
+    }
+    const ext = ALLOWED_IMAGE_TYPES[file.type];
+    if (!ext) {
+      throw new Error(`${file.name} is not a supported image.`);
+    }
+
     const bytes = new Uint8Array(await file.arrayBuffer());
-    const ext = file.name.split(".").pop() || "webp";
+    // Extension comes from the allowlist, never the client-supplied filename.
     const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 6)}.${ext}`;
     const url = await uploadProductImage(productId, filename, bytes, file.type);
     urls.push(url);

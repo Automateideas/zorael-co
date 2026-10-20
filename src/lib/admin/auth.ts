@@ -1,10 +1,16 @@
 /**
- * Admin authentication — hardcoded credentials, HMAC-signed session cookie.
+ * Admin authentication — env-configured credentials, HMAC-signed session cookie.
  * Server-only. Never import from a Client Component.
  */
+import { createHash, timingSafeEqual } from "node:crypto";
+import { verifyPassword } from "@/lib/password";
 
-const ADMIN_MOBILE = "9599523940";
-const ADMIN_PASSWORD = "Vicky@9599523940";
+/** Compares via digests so the check is constant time and length-independent. */
+function constantTimeEquals(a: string, b: string): boolean {
+  const da = createHash("sha256").update(a.normalize("NFKC")).digest();
+  const db = createHash("sha256").update(b.normalize("NFKC")).digest();
+  return timingSafeEqual(da, db);
+}
 
 /** Cookie name for the admin session token. */
 export const ADMIN_COOKIE = "zorael_admin_session";
@@ -28,12 +34,43 @@ function getSecret(): string {
   return "zorael-dev-admin-secret-change-me";
 }
 
-/** Verify the supplied mobile + password against the hardcoded credentials. */
-export function verifyCredentials(mobile: string, password: string): boolean {
-  // Constant-time comparison would be ideal but for a single hardcoded admin
-  // the risk is negligible. Strip whitespace and country prefixes.
+/**
+ * Verify the supplied mobile + password against the configured admin.
+ *
+ * Password comes from either ADMIN_PASSWORD (plain) or ADMIN_PASSWORD_HASH
+ * (scrypt, via `npm run admin:set-password`); the hash wins when both are set.
+ * Both are compared in constant time. The mobile number is not a secret, so a
+ * plain comparison is fine for it.
+ */
+export async function verifyCredentials(
+  mobile: string,
+  password: string,
+): Promise<boolean> {
+  const expectedMobile = process.env.ADMIN_MOBILE;
+  const expectedHash = process.env.ADMIN_PASSWORD_HASH;
+  const expectedPlain = process.env.ADMIN_PASSWORD;
+
+  if (!expectedMobile || (!expectedHash && !expectedPlain)) {
+    throw new Error(
+      "Set ADMIN_MOBILE plus either ADMIN_PASSWORD or ADMIN_PASSWORD_HASH.",
+    );
+  }
+
+  const checkPassword = () =>
+    expectedHash
+      ? verifyPassword(password, expectedHash)
+      : Promise.resolve(constantTimeEquals(password, expectedPlain!));
+
+  // Strip whitespace, separators and a leading country code.
   const clean = mobile.replace(/[\s\-+]/g, "").replace(/^91/, "");
-  return clean === ADMIN_MOBILE && password === ADMIN_PASSWORD;
+  if (clean !== expectedMobile) {
+    // Still check, so a wrong mobile is not measurably faster than a wrong
+    // password.
+    await checkPassword();
+    return false;
+  }
+
+  return checkPassword();
 }
 
 /**

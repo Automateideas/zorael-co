@@ -107,8 +107,8 @@ export function CheckoutView() {
         )}
         <p className="mt-3 max-w-md text-sm leading-relaxed text-charcoal/60">
           {codPending
-            ? "Your order is confirmed and will be paid on delivery. A confirmation would normally be sent to your email with tracking details."
-            : "Your payment was processed through the configured gateway (currently the built-in test gateway — no real charge). A confirmation would normally be sent to your email with tracking details."}
+            ? "Your order is confirmed. Payment will be collected on delivery."
+            : "Your payment has been received. We'll begin preparing your order right away."}
         </p>
         <Link
           href="/shop"
@@ -261,9 +261,8 @@ export function CheckoutView() {
                 ))}
               </div>
               <p className="mt-4 text-xs text-charcoal/50">
-                Payment is processed securely by the configured gateway. The
-                store currently runs the built-in test gateway, so no real charge
-                is made.
+                Payments are processed securely by PayU. Your card and banking
+                details are never stored on our servers.
               </p>
               <div className="mt-8 flex gap-3">
                 <button

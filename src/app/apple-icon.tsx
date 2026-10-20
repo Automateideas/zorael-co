@@ -1,9 +1,12 @@
 import { ImageResponse } from "next/og";
+import { LOGO_BACKGROUND, logoBox, logoDataUri } from "@/lib/brand-logo";
 
 export const size = { width: 180, height: 180 };
 export const contentType = "image/png";
 
 export default function AppleIcon() {
+  const box = logoBox(size.width);
+
   return new ImageResponse(
     (
       <div
@@ -11,27 +14,16 @@ export default function AppleIcon() {
           width: "100%",
           height: "100%",
           display: "flex",
-          flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          background: "#171613",
-          color: "#B79A5A",
-          fontFamily: "Georgia, serif",
+          background: LOGO_BACKGROUND,
+          overflow: "hidden",
         }}
       >
-        <div style={{ fontSize: 78, letterSpacing: -2 }}>Z&amp;C</div>
-        <div
-          style={{
-            fontSize: 15,
-            letterSpacing: 4,
-            color: "#F5F1E8",
-            marginTop: 6,
-          }}
-        >
-          ZORAEL
-        </div>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={logoDataUri()} alt="" width={box.width} height={box.height} />
       </div>
     ),
-    { ...size },
+    size,
   );
 }

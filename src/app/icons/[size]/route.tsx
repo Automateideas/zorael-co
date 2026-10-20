@@ -1,4 +1,5 @@
 import { ImageResponse } from "next/og";
+import { LOGO_BACKGROUND, logoBox, logoDataUri } from "@/lib/brand-logo";
 
 export const dynamic = "force-static";
 
@@ -13,6 +14,8 @@ export async function GET(
 ) {
   const { size } = await params;
   const dim = size === "512" ? 512 : 192;
+  const box = logoBox(dim);
+
   return new ImageResponse(
     (
       <div
@@ -20,27 +23,19 @@ export async function GET(
           width: "100%",
           height: "100%",
           display: "flex",
-          flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          background: "#171613",
-          color: "#B79A5A",
-          fontFamily: "Georgia, serif",
+          background: LOGO_BACKGROUND,
+          overflow: "hidden",
         }}
       >
-        <div style={{ fontSize: dim * 0.42, letterSpacing: -dim * 0.01 }}>
-          Z&amp;C
-        </div>
-        <div
-          style={{
-            fontSize: dim * 0.08,
-            letterSpacing: dim * 0.02,
-            color: "#F5F1E8",
-            marginTop: dim * 0.03,
-          }}
-        >
-          ZORAEL
-        </div>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={logoDataUri()}
+          alt=""
+          width={box.width}
+          height={box.height}
+        />
       </div>
     ),
     { width: dim, height: dim },

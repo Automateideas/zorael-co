@@ -5,14 +5,19 @@ import { useRouter } from "next/navigation";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
 
-type Step = "phone" | "otp";
+type Step = "phone" | "otp" | "new-password";
+type Mode = "otp" | "password";
 
 export function LoginForm() {
   const router = useRouter();
   const { refresh } = useAuth();
 
+  const [mode, setMode] = useState<Mode>("otp");
   const [step, setStep] = useState<Step>("phone");
   const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [resetting, setResetting] = useState(false);
   const [sessionId, setSessionId] = useState("");
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [error, setError] = useState("");
@@ -59,10 +64,89 @@ export function LoginForm() {
     }
   };
 
+  const signInWithPassword = async () => {
+    setError("");
+    if (!/^[6-9]\d{9}$/.test(phone)) {
+      setError("Enter a valid 10-digit mobile number.");
+      return;
+    }
+    if (!password) {
+      setError("Enter your password.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone, password }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "Sign-in failed.");
+        return;
+      }
+
+      await refresh();
+      router.push("/account");
+      router.refresh();
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const submitNewPassword = async () => {
+    setError("");
+    if (newPassword.length < 8) {
+      setError("Password must be at least 8 characters.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          phone,
+          sessionId,
+          otp: otp.join(""),
+          password: newPassword,
+        }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "Could not set your password.");
+        return;
+      }
+
+      await refresh();
+      router.push("/account");
+      router.refresh();
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const verifyOtp = async () => {
     const code = otp.join("");
     if (code.length !== 6) {
       setError("Enter the 6-digit OTP.");
+      return;
+    }
+
+    // Forgot-password flow: the OTP is verified server-side together with the
+    // new password, so just move to the password step.
+    if (resetting) {
+      setError("");
+      setStep("new-password");
       return;
     }
 
@@ -124,8 +208,40 @@ export function LoginForm() {
     }
   };
 
+  const switchMode = (next: Mode) => {
+    setMode(next);
+    setError("");
+    setPassword("");
+    setResetting(false);
+    setStep("phone");
+  };
+
   return (
     <div className="mt-8">
+      {step === "phone" && (
+        <div
+          role="tablist"
+          aria-label="Sign-in method"
+          className="mb-6 flex gap-2"
+        >
+          {(["otp", "password"] as const).map((m) => (
+            <button
+              key={m}
+              role="tab"
+              aria-selected={mode === m}
+              onClick={() => switchMode(m)}
+              className={`h-9 flex-1 rounded-full text-xs font-medium transition-colors ${
+                mode === m
+                  ? "bg-charcoal text-ivory"
+                  : "border border-border text-charcoal/60 hover:border-charcoal/40"
+              }`}
+            >
+              {m === "otp" ? "OTP" : "Password"}
+            </button>
+          ))}
+        </div>
+      )}
+
       {step === "phone" ? (
         <div className="space-y-4">
           <div>
@@ -142,7 +258,10 @@ export function LoginForm() {
                 maxLength={10}
                 value={phone}
                 onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
-                onKeyDown={(e) => e.key === "Enter" && sendOtp()}
+                onKeyDown={(e) =>
+                  e.key === "Enter" &&
+                  (mode === "otp" ? sendOtp() : signInWithPassword())
+                }
                 placeholder="Enter your mobile number"
                 className="h-12 flex-1 rounded-r-lg border border-border bg-white px-4 text-sm text-charcoal transition-colors placeholder:text-charcoal/30 focus:border-charcoal focus:outline-none"
                 autoFocus
@@ -150,28 +269,98 @@ export function LoginForm() {
             </div>
           </div>
 
+          {mode === "password" && (
+            <div>
+              <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-charcoal/50">
+                Password
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && signInWithPassword()}
+                placeholder="Enter your password"
+                autoComplete="current-password"
+                className="h-12 w-full rounded-lg border border-border bg-white px-4 text-sm text-charcoal transition-colors placeholder:text-charcoal/30 focus:border-charcoal focus:outline-none"
+              />
+            </div>
+          )}
+
           {error && (
             <p className="text-xs text-red-600">{error}</p>
           )}
 
           <button
-            onClick={sendOtp}
-            disabled={loading || phone.length !== 10}
+            onClick={mode === "otp" ? sendOtp : signInWithPassword}
+            disabled={
+              loading ||
+              phone.length !== 10 ||
+              (mode === "password" && !password)
+            }
+            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-charcoal text-sm font-medium text-ivory transition-colors hover:bg-black disabled:opacity-40"
+          >
+            {loading ? (
+              <Loader2 className="size-4 animate-spin" strokeWidth={1.5} />
+            ) : mode === "otp" ? (
+              <>
+                Continue
+                <ArrowRight className="size-4" strokeWidth={1.5} />
+              </>
+            ) : (
+              "Sign In"
+            )}
+          </button>
+
+          {mode === "otp" ? (
+            <p className="text-center text-[0.7rem] leading-relaxed text-charcoal/40">
+              We&apos;ll send a 6-digit verification code to this number.
+            </p>
+          ) : (
+            <button
+              onClick={() => {
+                setResetting(true);
+                sendOtp();
+              }}
+              disabled={loading || phone.length !== 10}
+              className="mx-auto block text-[0.7rem] text-charcoal/50 underline underline-offset-2 transition-colors hover:text-charcoal disabled:opacity-40"
+            >
+              Forgot password?
+            </button>
+          )}
+        </div>
+      ) : step === "new-password" ? (
+        <div className="space-y-4">
+          <div className="text-center">
+            <p className="text-sm text-charcoal/70">Choose a new password</p>
+            <p className="mt-1 text-xs text-charcoal/45">
+              For +91 {phone.slice(0, 2)}••••{phone.slice(-4)}
+            </p>
+          </div>
+
+          <input
+            type="password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && submitNewPassword()}
+            placeholder="At least 8 characters"
+            autoComplete="new-password"
+            className="h-12 w-full rounded-lg border border-border bg-white px-4 text-sm text-charcoal transition-colors placeholder:text-charcoal/30 focus:border-charcoal focus:outline-none"
+            autoFocus
+          />
+
+          {error && <p className="text-xs text-red-600">{error}</p>}
+
+          <button
+            onClick={submitNewPassword}
+            disabled={loading || newPassword.length < 8}
             className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-charcoal text-sm font-medium text-ivory transition-colors hover:bg-black disabled:opacity-40"
           >
             {loading ? (
               <Loader2 className="size-4 animate-spin" strokeWidth={1.5} />
             ) : (
-              <>
-                Continue
-                <ArrowRight className="size-4" strokeWidth={1.5} />
-              </>
+              "Save & Sign In"
             )}
           </button>
-
-          <p className="text-center text-[0.7rem] leading-relaxed text-charcoal/40">
-            We&apos;ll send a 6-digit verification code to this number.
-          </p>
         </div>
       ) : (
         <div className="space-y-6">
@@ -232,6 +421,8 @@ export function LoginForm() {
           >
             {loading ? (
               <Loader2 className="size-4 animate-spin" strokeWidth={1.5} />
+            ) : resetting ? (
+              "Verify & Continue"
             ) : (
               "Verify & Sign In"
             )}

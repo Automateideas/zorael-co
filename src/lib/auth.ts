@@ -11,14 +11,26 @@ import { profiles } from "@/db/schema";
 export const SESSION_COOKIE = "zorael_session";
 export const SESSION_MAX_AGE = 30 * 24 * 60 * 60; // 30 days
 
-const SECRET =
-  process.env.AUTH_SESSION_SECRET || "zorael-dev-session-secret-change-me";
+/**
+ * The dev fallback is a constant in this repo, so anyone could forge a
+ * customer session with it — refuse to run on it in production.
+ */
+function getSecret(): string {
+  const secret = process.env.AUTH_SESSION_SECRET;
+  if (secret) return secret;
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(
+      "AUTH_SESSION_SECRET must be set in production — the dev fallback is public.",
+    );
+  }
+  return "zorael-dev-session-secret-change-me";
+}
 
 async function hmacSign(payload: string): Promise<string> {
   const enc = new TextEncoder();
   const key = await crypto.subtle.importKey(
     "raw",
-    enc.encode(SECRET),
+    enc.encode(getSecret()),
     { name: "HMAC", hash: "SHA-256" },
     false,
     ["sign"],
@@ -76,6 +88,24 @@ export async function getProfile() {
     .limit(1);
 
   return row ?? null;
+}
+
+export async function findProfileByPhone(phone: string) {
+  const db = getDb();
+  const [row] = await db
+    .select()
+    .from(profiles)
+    .where(eq(profiles.phone, phone))
+    .limit(1);
+  return row ?? null;
+}
+
+export async function setProfilePassword(userId: string, passwordHash: string) {
+  const db = getDb();
+  await db
+    .update(profiles)
+    .set({ passwordHash, updatedAt: new Date() })
+    .where(eq(profiles.id, userId));
 }
 
 export async function findOrCreateProfile(phone: string) {

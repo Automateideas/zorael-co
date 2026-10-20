@@ -97,7 +97,7 @@ export class PayUGateway implements PaymentGateway {
     }
 
     const amountInRupees = (input.amount.amount / 100).toFixed(2);
-    const email = input.customer.email || "customer@zorael.co";
+    const email = input.customer.email || "customer@zoraelandco.com";
     const phone = input.customer.phone || "";
 
     const hash = generateHash({
@@ -199,9 +199,11 @@ export class PayUGateway implements PaymentGateway {
 }
 
 function getAppBaseUrl(): string {
-  return (
+  const base =
     process.env.NEXT_PUBLIC_APP_URL ||
     process.env.NEXTAUTH_URL ||
-    "http://localhost:3000"
-  );
+    "http://localhost:3000";
+  // A trailing slash would produce `//api/...`, which PayU may not match
+  // against the URLs registered on the merchant account.
+  return base.replace(/\/+$/, "");
 }

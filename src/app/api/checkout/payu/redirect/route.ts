@@ -46,7 +46,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Invalid request" }, { status: 403 });
   }
 
-  const payuUrl = getPayUBaseUrl(params.key);
+  const payuUrl = getPayUBaseUrl();
 
   const hiddenFields = Object.entries(params)
     .map(
@@ -118,13 +118,15 @@ function escapeHtml(str: string): string {
     .replace(/>/g, "&gt;");
 }
 
-function getPayUBaseUrl(key: string): string {
-  const isTest =
-    key.length <= 8 ||
-    key === "gtKFFx" ||
-    key.startsWith("test") ||
-    key.startsWith("Test");
-  return isTest
-    ? "https://test.payu.in/_payment"
-    : "https://secure.payu.in/_payment";
+/**
+ * Live vs test cannot be inferred from the merchant key — PayU issues
+ * short keys for both. NODE_ENV decides, with PAYU_BASE_URL as an explicit
+ * override for staging that must reach the live endpoint (or vice versa).
+ */
+function getPayUBaseUrl(): string {
+  const override = process.env.PAYU_BASE_URL;
+  if (override) return override;
+  return process.env.NODE_ENV === "production"
+    ? "https://secure.payu.in/_payment"
+    : "https://test.payu.in/_payment";
 }

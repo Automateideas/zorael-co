@@ -155,6 +155,8 @@ export const profiles = pgTable(
     email: text("email"),
     phone: text("phone"),
     phoneVerified: boolean("phone_verified").notNull().default(false),
+    /** scrypt hash; null until the customer opts into password sign-in. */
+    passwordHash: text("password_hash"),
     role: text("role")
       .$type<"customer" | "staff" | "admin">()
       .notNull()

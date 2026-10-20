@@ -1,9 +1,12 @@
 import { ImageResponse } from "next/og";
+import { LOGO_BACKGROUND, logoBox, logoDataUri } from "@/lib/brand-logo";
 
 export const size = { width: 64, height: 64 };
 export const contentType = "image/png";
 
 export default function Icon() {
+  const box = logoBox(size.width);
+
   return new ImageResponse(
     (
       <div
@@ -13,16 +16,14 @@ export default function Icon() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "#171613",
-          color: "#B79A5A",
-          fontSize: 34,
-          fontFamily: "Georgia, serif",
-          letterSpacing: -1,
+          background: LOGO_BACKGROUND,
+          overflow: "hidden",
         }}
       >
-        Z&amp;C
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={logoDataUri()} alt="" width={box.width} height={box.height} />
       </div>
     ),
-    { ...size },
+    size,
   );
 }
