@@ -8,7 +8,7 @@ import { useAuth } from "@/components/providers/auth-provider";
 type Step = "phone" | "otp" | "new-password";
 type Mode = "otp" | "password";
 
-export function LoginForm() {
+export function LoginForm({ redirectTo = "/account" }: { redirectTo?: string }) {
   const router = useRouter();
   const { refresh } = useAuth();
 
@@ -92,7 +92,7 @@ export function LoginForm() {
       }
 
       await refresh();
-      router.push("/account");
+      router.push(redirectTo);
       router.refresh();
     } catch {
       setError("Something went wrong. Please try again.");
@@ -128,7 +128,7 @@ export function LoginForm() {
       }
 
       await refresh();
-      router.push("/account");
+      router.push(redirectTo);
       router.refresh();
     } catch {
       setError("Something went wrong. Please try again.");
@@ -168,7 +168,7 @@ export function LoginForm() {
       }
 
       await refresh();
-      router.push("/account");
+      router.push(redirectTo);
       router.refresh();
     } catch {
       setError("Something went wrong. Please try again.");

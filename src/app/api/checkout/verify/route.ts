@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getGateway } from "@/lib/payments";
 import { getOrderStore } from "@/lib/orders/store";
 import { decrementStock } from "@/lib/inventory";
+import { getSession } from "@/lib/auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -29,9 +30,19 @@ export async function POST(request: Request) {
     );
   }
 
+  const session = await getSession();
+  if (!session) {
+    return NextResponse.json({ error: "Not signed in." }, { status: 401 });
+  }
+
   const store = getOrderStore();
   const order = await store.get(orderId);
   if (!order) {
+    return NextResponse.json({ error: "Order not found" }, { status: 404 });
+  }
+
+  // A signed-in customer must not be able to settle someone else's order.
+  if (order.userId && order.userId !== session.userId) {
     return NextResponse.json({ error: "Order not found" }, { status: 404 });
   }
 

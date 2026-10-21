@@ -37,12 +37,19 @@ export async function POST(request: Request) {
     phone: body.customer?.phone?.trim() || undefined,
   };
 
-  // Trusted, server-side pricing — the coupon is re-validated here, so a
-  // client-supplied discount can never reach the gateway.
+  // Orders are tied to a real account. The session cookie is the only source
+  // of identity — a client-supplied user id is never trusted.
   const session = await getSession();
+  if (!session) {
+    return NextResponse.json(
+      { error: "Please sign in or create an account to place your order." },
+      { status: 401 },
+    );
+  }
+
   const cart = await priceCart(items, {
     couponCode: body.couponCode,
-    userId: session?.userId,
+    userId: session.userId,
     phone: customer.phone,
   });
   if (cart.lines.length === 0 || cart.total <= 0) {
@@ -108,7 +115,7 @@ export async function POST(request: Request) {
       address: body.address,
       provider: "cod",
       status: "pending",
-      userId: session?.userId,
+      userId: session.userId,
     });
     if (cart.couponCode) await recordRedemption(cart.couponCode);
     return NextResponse.json({
@@ -133,7 +140,7 @@ export async function POST(request: Request) {
     customer,
     address: body.address,
     status: "created",
-    userId: session?.userId,
+    userId: session.userId,
   });
   if (cart.couponCode) await recordRedemption(cart.couponCode);
 

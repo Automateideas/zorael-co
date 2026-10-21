@@ -8,9 +8,26 @@ export const metadata: Metadata = {
   robots: { index: false },
 };
 
-export default async function LoginPage() {
+export const dynamic = "force-dynamic";
+
+/** Only in-app paths are accepted, so `next` cannot bounce to another site. */
+function safeNext(value: string | undefined): string {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) {
+    return "/account";
+  }
+  return value;
+}
+
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string; reason?: string }>;
+}) {
+  const { next, reason } = await searchParams;
+  const target = safeNext(next);
+
   const session = await getSession();
-  if (session) redirect("/account");
+  if (session) redirect(target);
 
   return (
     <div className="container-zorael flex min-h-[60vh] items-center justify-center py-12">
@@ -20,10 +37,17 @@ export default async function LoginPage() {
             Welcome
           </h1>
           <p className="mt-2 text-sm text-charcoal/55">
-            Sign in with your mobile number
+            {reason === "checkout"
+              ? "Please sign in or create an account to place your order."
+              : "Sign in with your mobile number"}
           </p>
+          {reason === "checkout" && (
+            <p className="mt-2 text-xs text-charcoal/45">
+              Your bag is saved — you&apos;ll come straight back to checkout.
+            </p>
+          )}
         </div>
-        <LoginForm />
+        <LoginForm redirectTo={target} />
       </div>
     </div>
   );
