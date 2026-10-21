@@ -11,6 +11,7 @@ import {
   ExternalLink,
   Tags,
   ShoppingBag,
+  Images,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -20,6 +21,7 @@ const navItems = [
   { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
   { href: "/admin/products", label: "Products", icon: Package },
   { href: "/admin/categories", label: "Categories", icon: Tags },
+  { href: "/admin/storage", label: "Storage", icon: Images },
 ];
 
 export function AdminShell({ children }: { children: React.ReactNode }) {

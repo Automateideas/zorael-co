@@ -11,6 +11,7 @@ import {
   Trash2,
   ArrowLeft,
   Loader2,
+  Images,
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -22,6 +23,8 @@ import {
   type ProductFormData,
   type VariantData,
 } from "../actions";
+import { attachExistingImages } from "../storage/actions";
+import { ImagePicker } from "../storage/image-picker";
 
 type ProductRow = {
   id: string;
@@ -103,6 +106,8 @@ export function ProductEditor({
 
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [picking, setPicking] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const splitList = (s: string) =>
@@ -189,6 +194,20 @@ export function ProductEditor({
     }
     await removeProductImage(product.id, url);
     setImages((prev) => prev.filter((u) => u !== url));
+  };
+
+  /** Links images that already exist in storage — nothing is re-uploaded. */
+  const handlePickExisting = async (urls: string[]) => {
+    if (!product?.id) return;
+    setPicking(true);
+    try {
+      const merged = await attachExistingImages(product.id, urls);
+      setImages(merged);
+      setPickerOpen(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not add images");
+    }
+    setPicking(false);
   };
 
   const addVariant = () => {
@@ -295,6 +314,23 @@ export function ProductEditor({
               </>
             )}
           </button>
+          <button
+            type="button"
+            onClick={() => setPickerOpen(true)}
+            disabled={!product?.id}
+            className={cn(
+              "flex size-24 flex-col items-center justify-center gap-1 rounded-md border-2 border-dashed border-border text-charcoal/40 transition-colors hover:border-charcoal/40 hover:text-charcoal/60",
+              !product?.id && "cursor-not-allowed opacity-50",
+            )}
+            title={
+              product?.id
+                ? "Choose images already in storage"
+                : "Save product first"
+            }
+          >
+            <Images className="size-5" strokeWidth={1.5} />
+            <span className="text-[10px]">Library</span>
+          </button>
           <input
             ref={fileRef}
             type="file"
@@ -306,10 +342,19 @@ export function ProductEditor({
         </div>
         {!product?.id && (
           <p className="mt-2 text-xs text-charcoal/40">
-            Save the product first, then you can upload images.
+            Save the product first, then you can add images.
           </p>
         )}
       </section>
+
+      {pickerOpen && (
+        <ImagePicker
+          alreadyAdded={images}
+          saving={picking}
+          onClose={() => setPickerOpen(false)}
+          onConfirm={handlePickExisting}
+        />
+      )}
 
       {/* Attributes */}
       <section className="rounded-lg border border-border bg-white p-5">
