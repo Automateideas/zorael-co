@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Loader2 } from "lucide-react";
+import { ArrowRight, Loader2, Phone } from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
 
 type Step = "phone" | "otp" | "new-password";
@@ -23,6 +23,7 @@ export function LoginForm() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [countdown, setCountdown] = useState(0);
+  const [channel, setChannel] = useState<"sms" | "voice">("sms");
 
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -32,7 +33,7 @@ export function LoginForm() {
     return () => clearTimeout(t);
   }, [countdown]);
 
-  const sendOtp = async () => {
+  const sendOtp = async (channel: "sms" | "voice" = "sms") => {
     setError("");
     if (!/^[6-9]\d{9}$/.test(phone)) {
       setError("Enter a valid 10-digit mobile number.");
@@ -40,11 +41,12 @@ export function LoginForm() {
     }
 
     setLoading(true);
+    setChannel(channel);
     try {
       const res = await fetch("/api/auth/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone }),
+        body: JSON.stringify({ phone, channel }),
       });
       const data = await res.json();
 
@@ -291,7 +293,7 @@ export function LoginForm() {
           )}
 
           <button
-            onClick={mode === "otp" ? sendOtp : signInWithPassword}
+            onClick={() => (mode === "otp" ? sendOtp("sms") : signInWithPassword())}
             disabled={
               loading ||
               phone.length !== 10 ||
@@ -312,9 +314,20 @@ export function LoginForm() {
           </button>
 
           {mode === "otp" ? (
-            <p className="text-center text-[0.7rem] leading-relaxed text-charcoal/40">
-              We&apos;ll send a 6-digit verification code to this number.
-            </p>
+            <div className="space-y-2 text-center">
+              <p className="text-[0.7rem] leading-relaxed text-charcoal/40">
+                We&apos;ll send a 6-digit verification code to this number.
+              </p>
+              <button
+                type="button"
+                onClick={() => sendOtp("voice")}
+                disabled={loading || phone.length !== 10}
+                className="inline-flex items-center gap-1.5 text-[0.7rem] text-charcoal/55 underline underline-offset-2 transition-colors hover:text-charcoal disabled:opacity-40"
+              >
+                <Phone className="size-3" strokeWidth={1.5} />
+                Not receiving SMS? Get the code by call
+              </button>
+            </div>
           ) : (
             <button
               onClick={() => {
@@ -367,7 +380,7 @@ export function LoginForm() {
           {/* Header */}
           <div className="text-center">
             <p className="text-sm text-charcoal/70">
-              Enter the code sent to
+              {channel === "voice" ? "We are calling you with the code at" : "Enter the code sent to"}
             </p>
             <p className="mt-1 text-sm font-medium text-charcoal">
               +91 {phone.slice(0, 2)}••••{phone.slice(-4)}
@@ -435,7 +448,7 @@ export function LoginForm() {
               </p>
             ) : (
               <button
-                onClick={sendOtp}
+                onClick={() => sendOtp(channel)}
                 disabled={loading}
                 className="text-xs font-medium text-charcoal underline underline-offset-2 transition-colors hover:text-black"
               >

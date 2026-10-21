@@ -47,9 +47,8 @@ export default function BagPage() {
     );
   }
 
-  const shippingNote =
-    subtotal >= 15000 ? "Complimentary" : formatPrice(500);
-  const total = subtotal + (subtotal >= 15000 ? 0 : 500);
+  const shippingNote = "Free";
+  const total = subtotal;
 
   return (
     <div className="container-zorael py-8 lg:py-12">
@@ -171,12 +170,9 @@ export default function BagPage() {
               </div>
             </dl>
 
-            {subtotal < 15000 && (
-              <p className="mt-4 rounded-md bg-cream px-3 py-2 text-xs text-charcoal/65">
-                Add {formatPrice(15000 - subtotal)} more for complimentary
-                shipping.
-              </p>
-            )}
+            <p className="mt-4 rounded-md bg-cream px-3 py-2 text-xs text-charcoal/65">
+              Complimentary delivery on every order.
+            </p>
 
             <Link
               href="/checkout"

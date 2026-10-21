@@ -44,8 +44,11 @@ export const paymentConfig = {
   /** Store settings used for server-side pricing. */
   store: {
     currency: "INR",
-    /** Flat shipping fee (in major units) below the free-shipping threshold. */
-    shippingFee: 500,
-    freeShippingThreshold: 15000,
+    /**
+     * Flat shipping fee in major units. Delivery is currently free on every
+     * order — set this above 0 to reintroduce a charge below the threshold.
+     */
+    shippingFee: 0,
+    freeShippingThreshold: 0,
   },
 } as const;

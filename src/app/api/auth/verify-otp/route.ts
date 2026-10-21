@@ -5,6 +5,7 @@ import {
   createSessionToken,
   findOrCreateProfile,
 } from "@/lib/auth";
+import { rateLimit, resetRateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -13,6 +14,20 @@ export async function POST(request: Request) {
   const API_KEY = process.env.TWO_FACTOR_API_KEY;
 
   const { phone, sessionId, otp } = await request.json();
+
+  // A 6-digit code is trivially brute-forced without a cap on attempts.
+  if (typeof sessionId === "string" && sessionId) {
+    const attempts = rateLimit(`otp-verify:${sessionId}`, 5, 10 * 60 * 1000);
+    if (!attempts.allowed) {
+      return NextResponse.json(
+        { error: "Too many incorrect attempts. Request a new code." },
+        {
+          status: 429,
+          headers: { "retry-after": String(attempts.retryAfter) },
+        },
+      );
+    }
+  }
 
   if (!phone || !sessionId || !otp) {
     return NextResponse.json(
@@ -40,6 +55,8 @@ export async function POST(request: Request) {
         { status: 400 },
       );
     }
+
+    resetRateLimit(`otp-verify:${sessionId}`);
 
     const profile = await findOrCreateProfile(phone);
     const token = await createSessionToken(profile.id, phone);

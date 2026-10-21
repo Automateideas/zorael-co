@@ -7,7 +7,7 @@ export const SITE = {
   motto: "Crafted for the Extraordinary.",
   description:
     "ZORAEL & CO. — a premium international luxury fashion house. Timeless clothing, fine jewellery and considered hand bags, designed with restraint and made to last.",
-  freeShippingNote: "Free Shipping on Orders Above ₹ 15,000",
+  freeShippingNote: "Complimentary Delivery on Every Order",
   announcement: "Timeless Pieces. Modern Elegance.",
   url: "https://zoraelandco.com",
 } as const;

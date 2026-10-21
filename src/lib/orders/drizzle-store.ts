@@ -25,6 +25,8 @@ function toOrder(row: OrderRow, items: OrderItemRow[]): Order {
     })),
     subtotal: row.subtotal,
     shipping: row.shipping,
+    discount: row.discount,
+    couponCode: row.couponCode ?? undefined,
     total: row.total,
     currency: row.currency,
     totalMinor: Math.round(row.total * 100),
@@ -70,6 +72,8 @@ export class DrizzleOrderStore implements OrderStore {
         address: input.address,
         subtotal: cart.subtotal,
         shipping: cart.shipping,
+        discount: cart.discount ?? 0,
+        couponCode: cart.couponCode ?? null,
         total: cart.total,
         currency: cart.currency,
       });

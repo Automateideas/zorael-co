@@ -3,6 +3,8 @@ import { getGateway } from "@/lib/payments";
 import { priceCart, type CartLineInput } from "@/lib/pricing";
 import { getOrderStore } from "@/lib/orders/store";
 import { validateStock, decrementStock } from "@/lib/inventory";
+import { getSession } from "@/lib/auth";
+import { recordRedemption } from "@/lib/coupons";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -12,6 +14,7 @@ type Body = {
   method?: string;
   customer?: { name?: string; email?: string; phone?: string };
   address?: Record<string, string>;
+  couponCode?: string;
 };
 
 export async function POST(request: Request) {
@@ -34,8 +37,14 @@ export async function POST(request: Request) {
     phone: body.customer?.phone?.trim() || undefined,
   };
 
-  // Trusted, server-side pricing.
-  const cart = await priceCart(items);
+  // Trusted, server-side pricing — the coupon is re-validated here, so a
+  // client-supplied discount can never reach the gateway.
+  const session = await getSession();
+  const cart = await priceCart(items, {
+    couponCode: body.couponCode,
+    userId: session?.userId,
+    phone: customer.phone,
+  });
   if (cart.lines.length === 0 || cart.total <= 0) {
     return NextResponse.json(
       { error: "No valid items in cart" },
@@ -99,13 +108,21 @@ export async function POST(request: Request) {
       address: body.address,
       provider: "cod",
       status: "pending",
+      userId: session?.userId,
     });
+    if (cart.couponCode) await recordRedemption(cart.couponCode);
     return NextResponse.json({
       orderId: order.id,
       cod: true,
       amount: cart.totalMinor,
       currency: cart.currency,
-      cart: { subtotal: cart.subtotal, shipping: cart.shipping, total: cart.total },
+      cart: {
+        subtotal: cart.subtotal,
+        shipping: cart.shipping,
+        discount: cart.discount,
+        couponCode: cart.couponCode,
+        total: cart.total,
+      },
     });
   }
 
@@ -116,7 +133,9 @@ export async function POST(request: Request) {
     customer,
     address: body.address,
     status: "created",
+    userId: session?.userId,
   });
+  if (cart.couponCode) await recordRedemption(cart.couponCode);
 
   try {
     const gateway = getGateway();
@@ -141,7 +160,13 @@ export async function POST(request: Request) {
       redirectUrl: result.redirectUrl,
       amount: cart.totalMinor,
       currency: cart.currency,
-      cart: { subtotal: cart.subtotal, shipping: cart.shipping, total: cart.total },
+      cart: {
+        subtotal: cart.subtotal,
+        shipping: cart.shipping,
+        discount: cart.discount,
+        couponCode: cart.couponCode,
+        total: cart.total,
+      },
     });
   } catch (err) {
     await store.update(order.id, { status: "failed" });

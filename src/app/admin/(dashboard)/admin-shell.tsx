@@ -12,6 +12,7 @@ import {
   Tags,
   ShoppingBag,
   Images,
+  Ticket,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -21,6 +22,7 @@ const navItems = [
   { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
   { href: "/admin/products", label: "Products", icon: Package },
   { href: "/admin/categories", label: "Categories", icon: Tags },
+  { href: "/admin/coupons", label: "Coupons", icon: Ticket },
   { href: "/admin/storage", label: "Storage", icon: Images },
 ];
 

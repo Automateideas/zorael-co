@@ -110,7 +110,7 @@ export default async function ProductPage({ params }: { params: Params }) {
 
           <div className="mt-6 flex items-center gap-2 rounded-lg bg-cream px-4 py-3 text-xs text-charcoal/70">
             <Truck className="size-4 text-muted-gold" strokeWidth={1.5} />
-            Complimentary shipping on orders above ₹ 15,000
+            Complimentary delivery on every order
           </div>
 
           {/* Accordions (native <details>) */}

@@ -11,6 +11,7 @@ export type CheckoutRequest = {
   method: string;
   customer: { name: string; email?: string; phone?: string };
   address?: Record<string, string>;
+  couponCode?: string;
 };
 
 export type StockError = {

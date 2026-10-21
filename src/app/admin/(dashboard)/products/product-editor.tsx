@@ -106,6 +106,12 @@ export function ProductEditor({
 
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(
+    null,
+  );
+  const [removing, setRemoving] = useState<Set<string>>(new Set());
+  const [imageError, setImageError] = useState<string | null>(null);
+  const [imageNotice, setImageNotice] = useState<string | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [picking, setPicking] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -171,29 +177,80 @@ export function ProductEditor({
     }
   };
 
+  /**
+   * Uploads one file per request. Sending the whole batch at once can exceed
+   * the Server Action body limit, and a single failure would lose every file.
+   */
   const handleUpload = async (files: FileList | null) => {
     if (!files?.length || !product?.id) return;
+
+    const list = Array.from(files);
+    setImageError(null);
+    setImageNotice(null);
     setUploading(true);
-    try {
-      const fd = new FormData();
-      for (let i = 0; i < files.length; i++) {
-        fd.append("files", files[i]);
+    setProgress({ done: 0, total: list.length });
+
+    const added: string[] = [];
+    const failures: string[] = [];
+
+    for (const [i, file] of list.entries()) {
+      try {
+        const fd = new FormData();
+        fd.append("files", file);
+        const result = await uploadProductImages(product.id, fd);
+        added.push(...result.urls);
+        failures.push(...result.errors);
+        if (result.urls.length > 0) {
+          setImages((prev) => [...prev, ...result.urls]);
+        }
+      } catch (err) {
+        failures.push(
+          `${file.name}: ${err instanceof Error ? err.message : "upload failed"}`,
+        );
       }
-      const urls = await uploadProductImages(product.id, fd);
-      setImages((prev) => [...prev, ...urls]);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Upload failed");
+      setProgress({ done: i + 1, total: list.length });
     }
+
     setUploading(false);
+    setProgress(null);
+    if (fileRef.current) fileRef.current.value = "";
+
+    if (added.length > 0) {
+      setImageNotice(
+        `${added.length} image${added.length === 1 ? "" : "s"} uploaded.`,
+      );
+      setTimeout(() => setImageNotice(null), 4000);
+    }
+    if (failures.length > 0) setImageError(failures.join(" "));
   };
 
   const handleRemoveImage = async (url: string) => {
+    setImageError(null);
+    setImageNotice(null);
+
     if (!product?.id) {
       setImages((prev) => prev.filter((u) => u !== url));
       return;
     }
-    await removeProductImage(product.id, url);
-    setImages((prev) => prev.filter((u) => u !== url));
+
+    setRemoving((prev) => new Set(prev).add(url));
+    try {
+      const updated = await removeProductImage(product.id, url);
+      // Trust the server's list so the UI matches what was actually stored.
+      setImages(updated);
+      setImageNotice("Image removed.");
+      setTimeout(() => setImageNotice(null), 3000);
+    } catch (err) {
+      setImageError(
+        err instanceof Error ? err.message : "Could not remove image.",
+      );
+    } finally {
+      setRemoving((prev) => {
+        const next = new Set(prev);
+        next.delete(url);
+        return next;
+      });
+    }
   };
 
   /** Links images that already exist in storage — nothing is re-uploaded. */
@@ -279,19 +336,36 @@ export function ProductEditor({
         <h2 className="text-sm font-medium uppercase tracking-wide text-charcoal/60">
           Images
         </h2>
+        <p className="mt-1 text-xs text-charcoal/45">
+          JPEG, PNG, WebP or AVIF — up to 10 MB each. Select several at once.
+        </p>
         <div className="mt-4 flex flex-wrap gap-3">
-          {images.map((url) => (
-            <div key={url} className="group relative">
+          {images.map((url, i) => (
+            <div key={`${url}-${i}`} className="relative">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={url}
-                alt=""
-                className="size-24 rounded-md object-cover"
+                alt={`Product image ${i + 1}`}
+                className="size-24 rounded-md border border-border object-cover"
               />
+              {i === 0 && (
+                <span className="absolute bottom-1 left-1 rounded bg-charcoal/80 px-1.5 py-0.5 text-[9px] uppercase tracking-wide text-ivory">
+                  Cover
+                </span>
+              )}
               <button
+                type="button"
                 onClick={() => handleRemoveImage(url)}
-                className="absolute -right-1.5 -top-1.5 flex size-5 items-center justify-center rounded-full bg-charcoal text-ivory opacity-0 transition-opacity group-hover:opacity-100"
+                disabled={removing.has(url)}
+                aria-label={`Remove image ${i + 1}`}
+                title="Remove this image"
+                className="absolute right-1 top-1 flex size-6 items-center justify-center rounded-full bg-charcoal/85 text-ivory transition-colors hover:bg-red-600 disabled:opacity-50"
               >
-                <X className="size-3" strokeWidth={2} />
+                {removing.has(url) ? (
+                  <Loader2 className="size-3 animate-spin" strokeWidth={2} />
+                ) : (
+                  <X className="size-3" strokeWidth={2} />
+                )}
               </button>
             </div>
           ))}
@@ -306,7 +380,14 @@ export function ProductEditor({
             title={product?.id ? "Upload images" : "Save product first to upload images"}
           >
             {uploading ? (
-              <Loader2 className="size-5 animate-spin" strokeWidth={1.5} />
+              <>
+                <Loader2 className="size-5 animate-spin" strokeWidth={1.5} />
+                {progress && (
+                  <span className="text-[10px] tabular-nums">
+                    {progress.done}/{progress.total}
+                  </span>
+                )}
+              </>
             ) : (
               <>
                 <Upload className="size-5" strokeWidth={1.5} />
@@ -343,6 +424,16 @@ export function ProductEditor({
         {!product?.id && (
           <p className="mt-2 text-xs text-charcoal/40">
             Save the product first, then you can add images.
+          </p>
+        )}
+        {imageNotice && (
+          <p className="mt-3 rounded-md bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
+            {imageNotice}
+          </p>
+        )}
+        {imageError && (
+          <p className="mt-3 rounded-md bg-red-50 px-3 py-2 text-xs text-red-600">
+            {imageError}
           </p>
         )}
       </section>

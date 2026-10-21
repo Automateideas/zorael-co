@@ -34,6 +34,13 @@ export function CheckoutView() {
   const [error, setError] = useState<string | null>(null);
   const [confirmedOrderId, setConfirmedOrderId] = useState<string | null>(null);
   const [codPending, setCodPending] = useState(false);
+  const [couponInput, setCouponInput] = useState("");
+  const [coupon, setCoupon] = useState<{ code: string; label: string } | null>(
+    null,
+  );
+  const [discount, setDiscount] = useState(0);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [checkingCoupon, setCheckingCoupon] = useState(false);
   const [address, setAddress] = useState({
     name: "",
     phone: "",
@@ -43,8 +50,51 @@ export function CheckoutView() {
     pincode: "",
   });
 
-  const shipping = subtotal >= 15000 ? 0 : 500;
-  const total = subtotal + shipping;
+  const shipping = 0;
+  const total = Math.max(0, subtotal + shipping - discount);
+
+  const applyCoupon = async () => {
+    const code = couponInput.trim();
+    if (!code) return;
+    setCheckingCoupon(true);
+    setCouponError(null);
+    try {
+      const res = await fetch("/api/coupons/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code,
+          phone: address.phone,
+          items: items.map((it) => ({
+            productId: it.productId,
+            quantity: it.quantity,
+            size: it.size,
+            color: it.color,
+          })),
+        }),
+      });
+      const data = await res.json();
+      if (!data.ok) {
+        setCoupon(null);
+        setDiscount(0);
+        setCouponError(data.reason ?? "This coupon could not be applied.");
+        return;
+      }
+      setCoupon({ code: data.code, label: data.label });
+      setDiscount(data.discount);
+      setCouponInput("");
+    } catch {
+      setCouponError("Could not check that code. Please try again.");
+    } finally {
+      setCheckingCoupon(false);
+    }
+  };
+
+  const removeCoupon = () => {
+    setCoupon(null);
+    setDiscount(0);
+    setCouponError(null);
+  };
 
   const handlePlaceOrder = async () => {
     setProcessing(true);
@@ -59,6 +109,7 @@ export function CheckoutView() {
       method: payment,
       customer: { name: address.name, phone: address.phone },
       address,
+      couponCode: coupon?.code,
     });
 
     if (result.status === "redirect") {
@@ -373,17 +424,68 @@ export function CheckoutView() {
                 </li>
               ))}
             </ul>
+            {/* Coupon */}
+            <div className="mt-5 border-t border-border pt-4">
+              {coupon ? (
+                <div className="flex items-center justify-between gap-3 rounded-md bg-cream px-3 py-2.5">
+                  <div>
+                    <p className="text-xs font-medium text-charcoal">
+                      {coupon.code}
+                    </p>
+                    <p className="text-[0.7rem] text-charcoal/55">
+                      {coupon.label} applied
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={removeCoupon}
+                    className="text-[0.7rem] text-charcoal/50 underline underline-offset-2 transition-colors hover:text-charcoal"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <input
+                    value={couponInput}
+                    onChange={(e) =>
+                      setCouponInput(e.target.value.toUpperCase())
+                    }
+                    onKeyDown={(e) => e.key === "Enter" && applyCoupon()}
+                    placeholder="Coupon code"
+                    aria-label="Coupon code"
+                    className="h-10 flex-1 rounded-md border border-border bg-white px-3 text-sm uppercase text-charcoal transition-colors placeholder:normal-case placeholder:text-charcoal/30 focus:border-muted-gold focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={applyCoupon}
+                    disabled={checkingCoupon || !couponInput.trim()}
+                    className="h-10 rounded-md border border-charcoal px-4 text-xs font-medium text-charcoal transition-colors hover:bg-charcoal hover:text-ivory disabled:opacity-40"
+                  >
+                    {checkingCoupon ? "…" : "Apply"}
+                  </button>
+                </div>
+              )}
+              {couponError && (
+                <p className="mt-2 text-[0.7rem] text-red-600">{couponError}</p>
+              )}
+            </div>
+
             <dl className="mt-5 space-y-2 border-t border-border pt-4 text-sm">
               <div className="flex justify-between text-charcoal/70">
                 <dt>Subtotal</dt>
                 <dd className="text-charcoal">{formatPrice(subtotal)}</dd>
               </div>
               <div className="flex justify-between text-charcoal/70">
-                <dt>Shipping</dt>
-                <dd className="text-charcoal">
-                  {shipping === 0 ? "Complimentary" : formatPrice(shipping)}
-                </dd>
+                <dt>Delivery</dt>
+                <dd className="text-charcoal">Free</dd>
               </div>
+              {discount > 0 && (
+                <div className="flex justify-between text-emerald-700">
+                  <dt>Discount {coupon && `(${coupon.code})`}</dt>
+                  <dd>−{formatPrice(discount)}</dd>
+                </div>
+              )}
               <div className="flex justify-between border-t border-border pt-2 text-base font-medium text-charcoal">
                 <dt>Total</dt>
                 <dd>{formatPrice(total)}</dd>

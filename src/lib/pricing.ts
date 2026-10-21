@@ -1,5 +1,6 @@
 import { getProductsByIds } from "./catalog";
 import { paymentConfig } from "./payments/config";
+import { validateCoupon } from "./coupons";
 
 export type CartLineInput = {
   productId: string;
@@ -23,6 +24,8 @@ export type PricedCart = {
   lines: PricedLine[];
   subtotal: number;
   shipping: number;
+  discount: number;
+  couponCode?: string;
   total: number;
   currency: string;
   /** Total in the smallest unit (paise) for gateways. */
@@ -34,7 +37,10 @@ export type PricedCart = {
  * prices are ignored — only product ids and quantities are trusted. This is the
  * single source of truth for what a customer is charged.
  */
-export async function priceCart(items: CartLineInput[]): Promise<PricedCart> {
+export async function priceCart(
+  items: CartLineInput[],
+  options: { couponCode?: string; userId?: string; phone?: string } = {},
+): Promise<PricedCart> {
   const { currency, shippingFee, freeShippingThreshold } = paymentConfig.store;
 
   const catalog = await getProductsByIds([
@@ -62,12 +68,29 @@ export async function priceCart(items: CartLineInput[]): Promise<PricedCart> {
   const subtotal = lines.reduce((sum, l) => sum + l.lineTotal, 0);
   const shipping =
     subtotal === 0 || subtotal >= freeShippingThreshold ? 0 : shippingFee;
-  const total = subtotal + shipping;
+
+  // Re-validated here rather than trusting any discount sent by the client.
+  let discount = 0;
+  let couponCode: string | undefined;
+  if (options.couponCode && subtotal > 0) {
+    const check = await validateCoupon(options.couponCode, subtotal, {
+      userId: options.userId,
+      phone: options.phone,
+    });
+    if (check.ok) {
+      discount = check.discount;
+      couponCode = check.code;
+    }
+  }
+
+  const total = Math.max(0, subtotal + shipping - discount);
 
   return {
     lines,
     subtotal,
     shipping,
+    discount,
+    couponCode,
     total,
     currency,
     totalMinor: Math.round(total * 100),

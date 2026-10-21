@@ -109,21 +109,34 @@ export async function uploadProductImages(
 
   const files = formData.getAll("files") as File[];
   const urls: string[] = [];
+  const errors: string[] = [];
 
-  for (const file of files) {
+  for (const [i, file] of files.entries()) {
+    // One unusable file must not discard the rest of the batch.
     if (file.size > MAX_IMAGE_BYTES) {
-      throw new Error(`${file.name} is larger than 10 MB.`);
+      errors.push(`${file.name} is larger than 10 MB.`);
+      continue;
     }
     const ext = ALLOWED_IMAGE_TYPES[file.type];
     if (!ext) {
-      throw new Error(`${file.name} is not a supported image.`);
+      errors.push(`${file.name} is not a supported image.`);
+      continue;
     }
 
-    const bytes = new Uint8Array(await file.arrayBuffer());
-    // Extension comes from the allowlist, never the client-supplied filename.
-    const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 6)}.${ext}`;
-    const url = await uploadProductImage(productId, filename, bytes, file.type);
-    urls.push(url);
+    try {
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      // Extension comes from the allowlist, never the client-supplied
+      // filename. The index keeps names unique within a single batch, where
+      // Date.now() is identical for every file.
+      const filename = `${Date.now()}-${i}-${Math.random().toString(36).slice(2, 6)}.${ext}`;
+      urls.push(
+        await uploadProductImage(productId, filename, bytes, file.type),
+      );
+    } catch (err) {
+      errors.push(
+        `${file.name}: ${err instanceof Error ? err.message : "upload failed"}`,
+      );
+    }
   }
 
   if (urls.length > 0) {
@@ -137,7 +150,7 @@ export async function uploadProductImages(
   }
 
   updateTag(CATALOG_TAG);
-  return urls;
+  return { urls, errors };
 }
 
 export async function removeProductImage(productId: string, imageUrl: string) {
@@ -150,7 +163,7 @@ export async function removeProductImage(productId: string, imageUrl: string) {
     .where(eq(products.id, productId))
     .limit(1);
 
-  if (!row) return;
+  if (!row) return [];
 
   const updated = (row.images ?? []).filter((img) => img !== imageUrl);
   await db
@@ -158,17 +171,27 @@ export async function removeProductImage(productId: string, imageUrl: string) {
     .set({ images: updated, updatedAt: new Date() })
     .where(eq(products.id, productId));
 
-  // Delete from storage — extract path from URL
-  try {
-    const pathMatch = imageUrl.match(/product-images\/(.+)$/);
-    if (pathMatch) {
-      await deleteImage(pathMatch[1]);
+  // The library picker lets one file back several products, so only remove
+  // the stored object once nothing else points at it.
+  const stillUsed = await db
+    .select({ id: products.id })
+    .from(products)
+    .where(sql`${products.images} @> ${JSON.stringify([imageUrl])}::jsonb`)
+    .limit(1);
+
+  if (stillUsed.length === 0) {
+    try {
+      const pathMatch = imageUrl.match(/product-images\/(.+)$/);
+      if (pathMatch) {
+        await deleteImage(pathMatch[1]);
+      }
+    } catch {
+      // Storage delete may fail if the file is already gone — non-critical.
     }
-  } catch {
-    // Storage delete may fail if file doesn't exist — non-critical
   }
 
   updateTag(CATALOG_TAG);
+  return updated;
 }
 
 export async function deleteProduct(productId: string) {

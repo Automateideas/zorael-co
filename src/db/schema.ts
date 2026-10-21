@@ -221,9 +221,14 @@ export const coupons = pgTable("coupons", {
   /** Percent (1–100) or fixed amount in major units. */
   value: integer("value").notNull(),
   minSubtotal: integer("min_subtotal").notNull().default(0),
+  /** Caps a percent discount, in major units. Null means uncapped. */
+  maxDiscount: integer("max_discount"),
   maxRedemptions: integer("max_redemptions"),
   redeemed: integer("redeemed").notNull().default(0),
+  startsAt: timestamp("starts_at", { withTimezone: true }),
   expiresAt: timestamp("expires_at", { withTimezone: true }),
+  /** Restricts the code to customers with no previous successful order. */
+  newCustomersOnly: boolean("new_customers_only").notNull().default(false),
   isActive: boolean("is_active").notNull().default(true),
 }).enableRLS();
 
