@@ -14,9 +14,42 @@ import {
 import { useStore } from "@/components/providers/store-provider";
 import { Media } from "@/components/media";
 import { cn, formatPrice } from "@/lib/utils";
-import { startCheckout } from "@/lib/checkout-client";
+import { startCheckout, type StockError } from "@/lib/checkout-client";
 
 const steps = ["Address", "Payment", "Review"] as const;
+
+/**
+ * A rejected line is not always a stock shortage — it may be over the
+ * per-order cap, or an option that no longer exists. Saying "out of stock"
+ * for all three sends the customer to fix the wrong thing.
+ */
+function describeStockErrors(
+  errors: StockError[],
+  items: { productId: string; name: string }[],
+): string {
+  if (errors.length === 0) {
+    return "Something in your bag could not be ordered. Please review it and try again.";
+  }
+
+  const nameFor = (productId: string) =>
+    items.find((i) => i.productId === productId)?.name ?? "An item";
+
+  return errors
+    .map((e) => {
+      const name = nameFor(e.productId);
+      switch (e.reason) {
+        case "exceeds_limit":
+          return `You can order up to ${e.available} of ${name} per order.`;
+        case "variant_not_found":
+          return `That option for ${name} is no longer available. Please choose another.`;
+        case "out_of_stock":
+          return `${name} is out of stock.`;
+        default:
+          return `Only ${e.available} of ${name} ${e.available === 1 ? "is" : "are"} left.`;
+      }
+    })
+    .join(" ");
+}
 
 const paymentMethods = [
   { id: "upi", label: "UPI (PhonePe / GPay / Paytm)", Icon: Smartphone },
@@ -122,9 +155,7 @@ export function CheckoutView() {
       clearCart();
       setPlaced(true);
     } else if (result.status === "out_of_stock") {
-      setError(
-        "Some items in your bag are out of stock. Please review your bag and try again.",
-      );
+      setError(describeStockErrors(result.stockErrors, items));
     } else {
       setError(result.error);
     }

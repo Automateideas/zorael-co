@@ -231,13 +231,19 @@ export async function saveVariants(productId: string, variants: VariantData[]) {
 
   if (variants.length > 0) {
     await db.insert(productVariants).values(
-      variants.map((v, i) => ({
-        productId,
-        sku: `${productId}-${v.size || "os"}-${v.color || "def"}-${i}`,
-        size: v.size || null,
-        color: v.color || null,
-        stock: v.stock,
-      })),
+      variants.map((v, i) => {
+        // Stray whitespace here stops the storefront from ever matching the
+        // variant, which presents as a permanent "out of stock".
+        const size = v.size?.trim() || null;
+        const color = v.color?.trim() || null;
+        return {
+          productId,
+          sku: `${productId}-${size || "os"}-${color || "def"}-${i}`,
+          size,
+          color,
+          stock: v.stock,
+        };
+      }),
     );
   }
 

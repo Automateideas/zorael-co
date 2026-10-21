@@ -59,16 +59,30 @@ export async function findVariant(
   if (!hasDatabase()) return null;
   const db = getDb();
 
+  // Compare on trimmed, case-insensitive values. A variant saved as
+  // "Rose Gold " would otherwise never match the "Rose Gold" the storefront
+  // sends, and the item would look permanently out of stock.
+  const trimmedSize = size?.trim() || null;
+  const trimmedColor = color?.trim() || null;
+
   const conditions = [eq(productVariants.productId, productId)];
-  if (size) {
-    conditions.push(eq(productVariants.size, size));
+  if (trimmedSize) {
+    conditions.push(
+      sql`lower(btrim(${productVariants.size})) = lower(${trimmedSize})`,
+    );
   } else {
-    conditions.push(sql`${productVariants.size} IS NULL`);
+    conditions.push(
+      sql`(${productVariants.size} IS NULL OR btrim(${productVariants.size}) = '')`,
+    );
   }
-  if (color) {
-    conditions.push(eq(productVariants.color, color));
+  if (trimmedColor) {
+    conditions.push(
+      sql`lower(btrim(${productVariants.color})) = lower(${trimmedColor})`,
+    );
   } else {
-    conditions.push(sql`${productVariants.color} IS NULL`);
+    conditions.push(
+      sql`(${productVariants.color} IS NULL OR btrim(${productVariants.color}) = '')`,
+    );
   }
 
   const [row] = await db
