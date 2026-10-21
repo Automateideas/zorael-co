@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { getGateway } from "@/lib/payments";
 import { priceCart, type CartLineInput } from "@/lib/pricing";
 import { getOrderStore } from "@/lib/orders/store";
@@ -118,6 +119,8 @@ export async function POST(request: Request) {
       userId: session.userId,
     });
     if (cart.couponCode) await recordRedemption(cart.couponCode);
+  // Drop any cached "no orders yet" so the customer sees this one immediately.
+  revalidatePath("/account/orders");
     return NextResponse.json({
       orderId: order.id,
       cod: true,
@@ -143,6 +146,8 @@ export async function POST(request: Request) {
     userId: session.userId,
   });
   if (cart.couponCode) await recordRedemption(cart.couponCode);
+  // Drop any cached "no orders yet" so the customer sees this one immediately.
+  revalidatePath("/account/orders");
 
   try {
     const gateway = getGateway();

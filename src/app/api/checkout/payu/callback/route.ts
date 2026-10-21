@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { getGateway } from "@/lib/payments";
 import { getOrderStore } from "@/lib/orders/store";
 import { decrementStock } from "@/lib/inventory";
@@ -82,6 +83,9 @@ export async function POST(request: Request) {
     },
     "payu-callback",
   );
+
+  // The status just changed to paid — refresh the customer order history.
+  revalidatePath("/account/orders");
 
   // Decrement stock on first successful payment
   if (previousStatus !== "paid" && order.method !== "cod") {
