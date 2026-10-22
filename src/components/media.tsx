@@ -54,7 +54,7 @@ export function Media({
     >
       {showPlaceholder ? (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-cream to-ivory p-4 text-center">
-          <span className="font-serif text-lg tracking-tight text-charcoal/40">
+          <span className="font-logo text-lg tracking-tight text-charcoal/40">
             ZORAEL & CO.
           </span>
           <span className="max-w-[80%] text-[0.7rem] uppercase tracking-[0.18em] text-muted-gold/70">

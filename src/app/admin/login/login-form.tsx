@@ -36,7 +36,7 @@ export function AdminLoginForm() {
     <div className="flex min-h-screen items-center justify-center bg-ivory px-4">
       <div className="w-full max-w-sm">
         <div className="text-center">
-          <h1 className="font-serif text-2xl tracking-tight text-charcoal">
+          <h1 className="font-logo text-2xl tracking-tight text-charcoal">
             ZORAEL & CO.
           </h1>
           <p className="mt-1 text-xs uppercase tracking-[0.2em] text-charcoal/50">

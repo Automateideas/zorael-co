@@ -91,7 +91,7 @@ export function SiteFooter() {
       <div className="border-b border-white/10">
         <div className="container-zorael grid gap-8 py-14 md:grid-cols-2 md:items-center md:gap-16 md:py-16">
           <div>
-            <span className="flex items-center gap-2 font-serif text-2xl tracking-[0.14em]">
+            <span className="flex items-center gap-2 font-logo text-2xl tracking-[0.14em]">
               <Monogram className="text-3xl" /> {SITE.name}
             </span>
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-ivory/60">

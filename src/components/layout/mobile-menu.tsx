@@ -54,7 +54,7 @@ export function MobileMenu() {
         aria-label="Main menu"
       >
         <div className="flex items-center justify-between border-b border-white/10 px-6 py-5">
-          <span className="flex items-center gap-2 font-serif text-lg tracking-[0.12em]">
+          <span className="flex items-center gap-2 font-logo text-lg tracking-[0.12em]">
             <Monogram className="text-2xl" /> {SITE.name}
           </span>
           <button

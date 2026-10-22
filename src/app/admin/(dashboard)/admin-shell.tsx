@@ -63,7 +63,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         {/* Brand */}
         <div className="flex h-16 items-center justify-between border-b border-border px-5">
           <Link href="/admin" className="flex flex-col">
-            <span className="font-serif text-sm tracking-tight text-charcoal">
+            <span className="font-logo text-sm tracking-tight text-charcoal">
               ZORAEL & CO.
             </span>
             <span className="text-[10px] uppercase tracking-[0.2em] text-charcoal/35">
