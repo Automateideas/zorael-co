@@ -16,6 +16,7 @@ const inter = Inter({
   display: "swap",
 });
 
+/** Brand mark only — the rest of the site is set in Inter. */
 const playfair = Playfair_Display({
   variable: "--font-playfair",
   subsets: ["latin"],

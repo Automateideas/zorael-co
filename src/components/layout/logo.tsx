@@ -13,7 +13,7 @@ export function Logo({
       href={href}
       aria-label="ZORAEL & CO. — home"
       className={cn(
-        "font-serif text-xl tracking-[0.14em] text-charcoal transition-opacity hover:opacity-70 sm:text-2xl",
+        "font-logo text-xl tracking-[0.14em] text-charcoal transition-opacity hover:opacity-70 sm:text-2xl",
         className,
       )}
     >
@@ -27,7 +27,7 @@ export function Monogram({ className }: { className?: string }) {
   return (
     <span
       className={cn(
-        "inline-flex items-baseline font-serif tracking-tight text-gold",
+        "inline-flex items-baseline font-logo tracking-tight text-gold",
         className,
       )}
     >
