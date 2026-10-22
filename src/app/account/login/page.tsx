@@ -21,9 +21,9 @@ function safeNext(value: string | undefined): string {
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string; reason?: string }>;
+  searchParams: Promise<{ next?: string; reason?: string; mode?: string }>;
 }) {
-  const { next, reason } = await searchParams;
+  const { next, reason, mode } = await searchParams;
   const target = safeNext(next);
 
   const session = await getSession();
@@ -47,7 +47,10 @@ export default async function LoginPage({
             </p>
           )}
         </div>
-        <LoginForm redirectTo={target} />
+        <LoginForm
+          redirectTo={target}
+          initialMode={mode === "signup" ? "signup" : "otp"}
+        />
       </div>
     </div>
   );

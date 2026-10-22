@@ -16,7 +16,6 @@ import {
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { getSession, getProfile } from "@/lib/auth";
 import { LogoutButton } from "./logout-button";
-import { AuthButtons } from "@/components/account/auth-buttons";
 
 export const metadata: Metadata = {
   title: "Account",
@@ -85,7 +84,20 @@ export default async function AccountPage() {
                     </p>
                   </div>
                 </div>
-                <AuthButtons />
+                <div className="mt-6 space-y-2.5">
+                  <Link
+                    href="/account/login"
+                    className="flex h-11 w-full items-center justify-center rounded-full bg-charcoal text-sm font-medium text-ivory transition-colors hover:bg-black"
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    href="/account/login?mode=signup"
+                    className="flex h-11 w-full items-center justify-center rounded-full border border-charcoal/20 text-sm font-medium text-charcoal transition-colors hover:bg-cream"
+                  >
+                    Create Account
+                  </Link>
+                </div>
               </>
             )}
           </div>

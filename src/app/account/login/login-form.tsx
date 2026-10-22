@@ -6,13 +6,25 @@ import { ArrowRight, Loader2, Phone } from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
 
 type Step = "phone" | "otp" | "new-password";
-type Mode = "otp" | "password";
+type Mode = "otp" | "password" | "signup";
 
-export function LoginForm({ redirectTo = "/account" }: { redirectTo?: string }) {
+export function LoginForm({
+  redirectTo = "/account",
+  initialMode = "otp",
+}: {
+  redirectTo?: string;
+  initialMode?: Mode;
+}) {
   const router = useRouter();
   const { refresh } = useAuth();
 
-  const [mode, setMode] = useState<Mode>("otp");
+  const [mode, setMode] = useState<Mode>(initialMode);
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [signupOtp, setSignupOtp] = useState("");
+  const [awaitingSignupOtp, setAwaitingSignupOtp] = useState(false);
+  const [notice, setNotice] = useState("");
   const [step, setStep] = useState<Step>("phone");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
@@ -32,6 +44,72 @@ export function LoginForm({ redirectTo = "/account" }: { redirectTo?: string }) 
     const t = setTimeout(() => setCountdown(countdown - 1), 1000);
     return () => clearTimeout(t);
   }, [countdown]);
+
+  /** Sign-up step one: validate details and send a code to the mobile. */
+  const startSignUp = async () => {
+    setError("");
+    setNotice("");
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/register/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fullName, email, phone, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Could not start sign-up.");
+        return;
+      }
+      setSessionId(data.sessionId);
+      setAwaitingSignupOtp(true);
+      setNotice(`We sent a 6-digit code to +91 ${phone}.`);
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /** Sign-up step two: the server re-verifies the code before creating. */
+  const completeSignUp = async () => {
+    setError("");
+    if (signupOtp.length !== 6) {
+      setError("Enter the 6-digit code.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fullName,
+          email,
+          phone,
+          password,
+          sessionId,
+          otp: signupOtp,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Could not create your account.");
+        return;
+      }
+      await refresh();
+      router.push(redirectTo);
+      router.refresh();
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const sendOtp = async (channel: "sms" | "voice" = "sms") => {
     setError("");
@@ -213,6 +291,9 @@ export function LoginForm({ redirectTo = "/account" }: { redirectTo?: string }) 
   const switchMode = (next: Mode) => {
     setMode(next);
     setError("");
+    setNotice("");
+    setAwaitingSignupOtp(false);
+    setSignupOtp("");
     setPassword("");
     setResetting(false);
     setStep("phone");
@@ -226,7 +307,7 @@ export function LoginForm({ redirectTo = "/account" }: { redirectTo?: string }) 
           aria-label="Sign-in method"
           className="mb-6 flex gap-2"
         >
-          {(["otp", "password"] as const).map((m) => (
+          {(["otp", "password", "signup"] as const).map((m) => (
             <button
               key={m}
               role="tab"
@@ -238,7 +319,7 @@ export function LoginForm({ redirectTo = "/account" }: { redirectTo?: string }) 
                   : "border border-border text-charcoal/60 hover:border-charcoal/40"
               }`}
             >
-              {m === "otp" ? "OTP" : "Password"}
+              {m === "otp" ? "OTP" : m === "password" ? "Password" : "Sign Up"}
             </button>
           ))}
         </div>
@@ -246,6 +327,65 @@ export function LoginForm({ redirectTo = "/account" }: { redirectTo?: string }) 
 
       {step === "phone" ? (
         <div className="space-y-4">
+          {mode === "signup" && !awaitingSignupOtp && (
+            <>
+              <div>
+                <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-charcoal/50">
+                  Full Name
+                </label>
+                <input
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="Your full name"
+                  autoComplete="name"
+                  className="h-12 w-full rounded-lg border border-border bg-white px-4 text-sm text-charcoal transition-colors placeholder:text-charcoal/30 focus:border-charcoal focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-charcoal/50">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  autoComplete="email"
+                  className="h-12 w-full rounded-lg border border-border bg-white px-4 text-sm text-charcoal transition-colors placeholder:text-charcoal/30 focus:border-charcoal focus:outline-none"
+                />
+              </div>
+            </>
+          )}
+
+          {awaitingSignupOtp ? (
+            <div>
+              <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-charcoal/50">
+                Verification Code
+              </label>
+              <input
+                value={signupOtp}
+                onChange={(e) =>
+                  setSignupOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
+                }
+                onKeyDown={(e) => e.key === "Enter" && completeSignUp()}
+                inputMode="numeric"
+                placeholder="6-digit code"
+                autoFocus
+                className="h-12 w-full rounded-lg border border-border bg-white px-4 text-center font-serif text-lg tracking-[0.3em] text-charcoal transition-colors placeholder:font-sans placeholder:text-sm placeholder:tracking-normal placeholder:text-charcoal/30 focus:border-charcoal focus:outline-none"
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  setAwaitingSignupOtp(false);
+                  setSignupOtp("");
+                  setNotice("");
+                }}
+                className="mt-2 text-xs text-charcoal/50 underline underline-offset-2 transition-colors hover:text-charcoal"
+              >
+                Change details
+              </button>
+            </div>
+          ) : (
           <div>
             <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-charcoal/50">
               Mobile Number
@@ -262,7 +402,11 @@ export function LoginForm({ redirectTo = "/account" }: { redirectTo?: string }) 
                 onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
                 onKeyDown={(e) =>
                   e.key === "Enter" &&
-                  (mode === "otp" ? sendOtp() : signInWithPassword())
+                  (mode === "otp"
+                    ? sendOtp()
+                    : mode === "signup"
+                      ? startSignUp()
+                      : signInWithPassword())
                 }
                 placeholder="Enter your mobile number"
                 className="h-12 flex-1 rounded-r-lg border border-border bg-white px-4 text-sm text-charcoal transition-colors placeholder:text-charcoal/30 focus:border-charcoal focus:outline-none"
@@ -270,6 +414,39 @@ export function LoginForm({ redirectTo = "/account" }: { redirectTo?: string }) 
               />
             </div>
           </div>
+          )}
+
+          {mode === "signup" && !awaitingSignupOtp && (
+            <>
+              <div>
+                <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-charcoal/50">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="At least 8 characters"
+                  autoComplete="new-password"
+                  className="h-12 w-full rounded-lg border border-border bg-white px-4 text-sm text-charcoal transition-colors placeholder:text-charcoal/30 focus:border-charcoal focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-charcoal/50">
+                  Confirm Password
+                </label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && startSignUp()}
+                  placeholder="Re-enter your password"
+                  autoComplete="new-password"
+                  className="h-12 w-full rounded-lg border border-border bg-white px-4 text-sm text-charcoal transition-colors placeholder:text-charcoal/30 focus:border-charcoal focus:outline-none"
+                />
+              </div>
+            </>
+          )}
 
           {mode === "password" && (
             <div>
@@ -292,17 +469,39 @@ export function LoginForm({ redirectTo = "/account" }: { redirectTo?: string }) 
             <p className="text-xs text-red-600">{error}</p>
           )}
 
+          {notice && (
+            <p className="rounded-md bg-cream px-3 py-2 text-xs text-charcoal/70">
+              {notice}
+            </p>
+          )}
+
           <button
-            onClick={() => (mode === "otp" ? sendOtp("sms") : signInWithPassword())}
+            onClick={() =>
+              awaitingSignupOtp
+                ? completeSignUp()
+                : mode === "otp"
+                  ? sendOtp("sms")
+                  : mode === "signup"
+                    ? startSignUp()
+                    : signInWithPassword()
+            }
             disabled={
               loading ||
-              phone.length !== 10 ||
-              (mode === "password" && !password)
+              (awaitingSignupOtp
+                ? signupOtp.length !== 6
+                : phone.length !== 10 ||
+                  (mode === "password" && !password) ||
+                  (mode === "signup" &&
+                    (!fullName.trim() || !email.trim() || !password)))
             }
             className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-charcoal text-sm font-medium text-ivory transition-colors hover:bg-black disabled:opacity-40"
           >
             {loading ? (
               <Loader2 className="size-4 animate-spin" strokeWidth={1.5} />
+            ) : awaitingSignupOtp ? (
+              "Verify & Create Account"
+            ) : mode === "signup" ? (
+              "Create Account"
             ) : mode === "otp" ? (
               <>
                 Continue
@@ -313,7 +512,11 @@ export function LoginForm({ redirectTo = "/account" }: { redirectTo?: string }) 
             )}
           </button>
 
-          {mode === "otp" ? (
+          {mode === "signup" ? (
+            <p className="text-center text-[0.7rem] leading-relaxed text-charcoal/40">
+              We&apos;ll verify your mobile number with a 6-digit code.
+            </p>
+          ) : mode === "otp" ? (
             <div className="space-y-2 text-center">
               <p className="text-[0.7rem] leading-relaxed text-charcoal/40">
                 We&apos;ll send a 6-digit verification code to this number.
