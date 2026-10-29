@@ -27,6 +27,29 @@ export function ProductGallery({
   const trackRef = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
 
+  /**
+   * The frame matches the photo's own proportions instead of a fixed 4:5 box.
+   * A forced ratio either crops the photo or pads it with dead space — on a
+   * narrow screen that padding is most of the viewport. 4:5 is only the
+   * placeholder until the first image reports its real size.
+   */
+  const [ratio, setRatio] = useState("4 / 5");
+  const first = gallery[0];
+
+  useEffect(() => {
+    if (!first) return;
+    const probe = new window.Image();
+    probe.onload = () => {
+      if (probe.naturalWidth && probe.naturalHeight) {
+        setRatio(`${probe.naturalWidth} / ${probe.naturalHeight}`);
+      }
+    };
+    probe.src = first;
+    return () => {
+      probe.onload = null;
+    };
+  }, [first]);
+
   const scrollTo = useCallback((i: number) => {
     const track = trackRef.current;
     if (!track) return;
@@ -66,11 +89,13 @@ export function ProductGallery({
     }
   };
 
+  // `min-w-0` lets the scrolling children actually shrink — without it a flex
+  // item is sized to its content and the whole page scrolls sideways on mobile.
   return (
-    <div className="flex flex-col-reverse gap-4 lg:flex-row">
+    <div className="flex min-w-0 flex-col-reverse gap-4 lg:flex-row">
       {/* Thumbnails */}
       {count > 1 && (
-        <div className="flex gap-3 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible lg:pb-0">
+        <div className="flex min-w-0 max-w-full gap-3 overflow-x-auto pb-1 lg:w-20 lg:flex-none lg:flex-col lg:overflow-visible lg:pb-0">
           {gallery.map((src, i) => (
             <button
               key={i}
@@ -99,7 +124,7 @@ export function ProductGallery({
 
       {/* Carousel */}
       <div
-        className="group relative flex-1 overflow-hidden rounded-lg"
+        className="group relative w-full min-w-0 flex-1 overflow-hidden rounded-lg"
         role="region"
         aria-roledescription="carousel"
         aria-label={`${name} images`}
@@ -113,7 +138,8 @@ export function ProductGallery({
           {gallery.map((src, i) => (
             <div
               key={i}
-              className="relative aspect-[4/5] w-full shrink-0 snap-center"
+              className="relative w-full shrink-0 snap-center"
+              style={{ aspectRatio: ratio }}
               role="group"
               aria-roledescription="slide"
               aria-label={`Image ${i + 1} of ${count}`}
