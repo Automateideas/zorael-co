@@ -64,7 +64,11 @@ export async function saveProduct(data: ProductFormData) {
   const db = getDb();
 
   const id = data.id || `prod-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-  const slug = data.slug || slugify(data.name);
+  // Always slugify, including a hand-typed slug. A value like
+  // "Kaftan Style Set" produces a URL the storefront cannot route to, so the
+  // product saves successfully but is unreachable.
+  const slug = slugify(data.slug || data.name);
+  if (!slug) throw new Error("Could not build a URL from this product name.");
   const now = new Date();
 
   const row = {

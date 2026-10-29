@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 type MediaProps = {
@@ -16,6 +16,12 @@ type MediaProps = {
   priority?: boolean;
   className?: string;
   imgClassName?: string;
+  /**
+   * `contain` shows the whole image inside the box — never cropped, which is
+   * what product photography needs. `cover` fills the box and trims the
+   * overflow; use it only for decorative/editorial banners.
+   */
+  fit?: "contain" | "cover";
 };
 
 /**
@@ -34,16 +40,16 @@ export function Media({
   priority,
   className,
   imgClassName,
+  fit = "contain",
 }: MediaProps) {
-  const [failed, setFailed] = useState(false);
-
-  // A retry (or a carousel step) must clear a previous failure, otherwise one
-  // transient error pins the placeholder for the life of the component.
-  useEffect(() => setFailed(false), [src]);
+  // Tracking which src failed (rather than a boolean) means a new src clears
+  // the failure on its own — one transient error cannot pin the placeholder
+  // for the life of the component.
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
 
   // An empty src makes next/image throw and re-request the page; show the
   // placeholder instead of handing it a URL it cannot resolve.
-  const showPlaceholder = failed || !src;
+  const showPlaceholder = !src || failedSrc === src;
 
   return (
     <div
@@ -68,8 +74,8 @@ export function Media({
           fill
           sizes={sizes}
           priority={priority}
-          className={cn("object-cover", imgClassName)}
-          onError={() => setFailed(true)}
+          className={cn(fit === "cover" ? "object-cover" : "object-contain", imgClassName)}
+          onError={() => setFailedSrc(src)}
         />
       ) : (
         <Image
@@ -79,8 +85,8 @@ export function Media({
           height={height ?? 1000}
           sizes={sizes}
           priority={priority}
-          className={cn("h-auto w-full object-cover", imgClassName)}
-          onError={() => setFailed(true)}
+          className={cn("h-auto w-full", fit === "cover" ? "object-cover" : "object-contain", imgClassName)}
+          onError={() => setFailedSrc(src)}
         />
       )}
     </div>

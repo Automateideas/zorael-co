@@ -25,6 +25,7 @@ import {
 } from "../actions";
 import { attachExistingImages } from "../storage/actions";
 import { ImagePicker } from "../storage/image-picker";
+import { resizeImage } from "@/lib/image-resize";
 
 type ProductRow = {
   id: string;
@@ -195,8 +196,10 @@ export function ProductEditor({
 
     for (const [i, file] of list.entries()) {
       try {
+        // Shrink before sending; originals off a phone are often several MB.
+        const prepared = await resizeImage(file);
         const fd = new FormData();
-        fd.append("files", file);
+        fd.append("files", prepared);
         const result = await uploadProductImages(product.id, fd);
         added.push(...result.urls);
         failures.push(...result.errors);

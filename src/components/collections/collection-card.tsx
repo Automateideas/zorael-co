@@ -23,7 +23,7 @@ export function CollectionCard({
           priority={priority}
           sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 33vw"
           className="h-full w-full"
-          imgClassName="transition-transform duration-700 ease-out group-hover:scale-105"
+          imgClassName="transition-transform duration-700 ease-out group-hover:scale-105" fit="cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-charcoal/75 via-charcoal/15 to-transparent" />
       </div>

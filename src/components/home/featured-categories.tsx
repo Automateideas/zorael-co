@@ -42,7 +42,7 @@ export function FeaturedCategories() {
                 alt={card.alt}
                 sizes="(max-width:768px) 100vw, 33vw"
                 className="h-full w-full"
-                imgClassName="transition-transform duration-700 ease-out group-hover:scale-105"
+                imgClassName="transition-transform duration-700 ease-out group-hover:scale-105" fit="cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-charcoal/70 via-charcoal/10 to-transparent" />
             </div>

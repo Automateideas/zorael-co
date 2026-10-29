@@ -10,7 +10,7 @@ export function EditorialBanner() {
           src={img(PHOTO.editorialWoman, 1800, 900)}
           alt="Zorael editorial campaign"
           sizes="100vw"
-          className="h-full w-full"
+          className="h-full w-full" fit="cover"
         />
         <div className="absolute inset-0 bg-charcoal/45" />
         <div className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center text-ivory">

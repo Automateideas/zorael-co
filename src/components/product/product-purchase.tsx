@@ -116,9 +116,42 @@ export function ProductPurchase({ product }: { product: Product }) {
         </p>
       )}
 
+      {/* Sizes */}
+      {product.sizes && product.sizes.length > 0 && (
+        <div className="mt-7">
+          <p className="text-xs font-medium uppercase tracking-[0.14em] text-charcoal/70">
+            Size
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {product.sizes.map((s) => {
+              const oos = isSizeOutOfStock(s);
+              return (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => !oos && setSize(s)}
+                  aria-pressed={size === s}
+                  disabled={oos}
+                  className={cn(
+                    "flex h-10 min-w-10 items-center justify-center rounded-full border px-3 text-sm transition-colors",
+                    size === s && !oos
+                      ? "border-charcoal bg-charcoal text-ivory"
+                      : "border-border text-charcoal hover:border-charcoal/50",
+                    oos &&
+                      "cursor-not-allowed border-border/50 text-charcoal/30 line-through hover:border-border/50",
+                  )}
+                >
+                  {s}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Colours */}
       {product.colors && product.colors.length > 0 && (
-        <div className="mt-7">
+        <div className="mt-6">
           <p className="text-xs font-medium uppercase tracking-[0.14em] text-charcoal/70">
             Colour{color ? ` — ${color}` : ""}
           </p>
@@ -146,39 +179,6 @@ export function ProductPurchase({ product }: { product: Product }) {
                       <span className="block h-px w-6 rotate-45 bg-charcoal/60" />
                     </span>
                   )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Sizes */}
-      {product.sizes && product.sizes.length > 0 && (
-        <div className="mt-6">
-          <p className="text-xs font-medium uppercase tracking-[0.14em] text-charcoal/70">
-            Size
-          </p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {product.sizes.map((s) => {
-              const oos = isSizeOutOfStock(s);
-              return (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => !oos && setSize(s)}
-                  aria-pressed={size === s}
-                  disabled={oos}
-                  className={cn(
-                    "flex h-10 min-w-10 items-center justify-center rounded-full border px-3 text-sm transition-colors",
-                    size === s && !oos
-                      ? "border-charcoal bg-charcoal text-ivory"
-                      : "border-border text-charcoal hover:border-charcoal/50",
-                    oos &&
-                      "cursor-not-allowed border-border/50 text-charcoal/30 line-through hover:border-border/50",
-                  )}
-                >
-                  {s}
                 </button>
               );
             })}

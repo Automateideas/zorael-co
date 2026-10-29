@@ -55,7 +55,7 @@ export default async function JournalPostPage({
           alt={post.title}
           priority
           sizes="100vw"
-          className="h-full w-full"
+          className="h-full w-full" fit="cover"
         />
         <div className="absolute inset-0 bg-charcoal/30" />
       </div>
@@ -112,7 +112,7 @@ export default async function JournalPostPage({
                     alt={p.title}
                     sizes="(max-width:640px) 100vw, 33vw"
                     className="h-full w-full"
-                    imgClassName="transition-transform duration-700 group-hover:scale-105"
+                    imgClassName="transition-transform duration-700 group-hover:scale-105" fit="cover"
                   />
                 </div>
                 <h3 className="mt-3 font-serif text-lg leading-snug tracking-tight text-charcoal transition-colors group-hover:text-muted-gold">

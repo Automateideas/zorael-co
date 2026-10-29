@@ -46,7 +46,7 @@ export default function AboutPage() {
             alt="The Zorael atelier"
             priority
             sizes="100vw"
-            className="h-full w-full"
+            className="h-full w-full" fit="cover"
           />
           <div className="absolute inset-0 bg-charcoal/45" />
           <div className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center text-ivory">
@@ -88,7 +88,7 @@ export default function AboutPage() {
               src={img(PHOTO.brandStory, 1000, 1250)}
               alt="Craftsmanship at Zorael"
               sizes="(max-width:1024px) 100vw, 50vw"
-              className="h-full w-full"
+              className="h-full w-full" fit="cover"
             />
           </div>
           <div>

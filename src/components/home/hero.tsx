@@ -66,7 +66,7 @@ export function Hero() {
               alt={slide.alt}
               priority={i === 0}
               sizes="100vw"
-              className="h-full w-full"
+              className="h-full w-full" fit="cover"
             />
             {/* Legibility scrim */}
             <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/25 to-transparent" />

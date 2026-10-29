@@ -50,7 +50,7 @@ export default async function CollectionPage({ params }: { params: Params }) {
             alt={collection.name}
             priority
             sizes="100vw"
-            className="h-full w-full"
+            className="h-full w-full" fit="cover"
           />
           <div className="absolute inset-0 bg-charcoal/40" />
           <div className="absolute inset-0 flex items-center">

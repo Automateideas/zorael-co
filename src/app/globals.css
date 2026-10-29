@@ -182,6 +182,55 @@
     @apply text-[0.7rem] font-medium uppercase tracking-[0.22em] text-muted-gold;
   }
 
+  /* Admin-authored product descriptions. Plain HTML is styled on-brand here,
+     so the admin never needs to write classes or inline styles. */
+  .rich-text {
+    @apply text-sm leading-relaxed text-charcoal/70;
+  }
+  .rich-text > :first-child {
+    @apply mt-0;
+  }
+  .rich-text p {
+    @apply mt-3;
+  }
+  .rich-text h2 {
+    @apply mt-6 text-base font-medium uppercase tracking-[0.14em] text-charcoal;
+  }
+  .rich-text h3,
+  .rich-text h4 {
+    @apply mt-5 text-sm font-medium uppercase tracking-[0.12em] text-charcoal;
+  }
+  .rich-text ul,
+  .rich-text ol {
+    @apply mt-3 space-y-1.5 pl-5;
+  }
+  .rich-text ul {
+    @apply list-disc marker:text-muted-gold;
+  }
+  .rich-text ol {
+    @apply list-decimal marker:text-muted-gold;
+  }
+  .rich-text strong,
+  .rich-text b {
+    @apply font-medium text-charcoal;
+  }
+  .rich-text a {
+    @apply text-charcoal underline underline-offset-2 transition-colors hover:text-muted-gold;
+  }
+  .rich-text blockquote {
+    @apply mt-4 border-l-2 border-border pl-4 italic text-charcoal/60;
+  }
+  .rich-text table {
+    @apply mt-4 w-full border-collapse text-left;
+  }
+  .rich-text th,
+  .rich-text td {
+    @apply border-b border-border py-2 pr-4 align-top;
+  }
+  .rich-text th {
+    @apply text-xs font-medium uppercase tracking-wide text-charcoal/50;
+  }
+
   /* Quiet underline link used across editorial CTAs. */
   .link-underline {
     @apply relative inline-flex items-center gap-1.5 text-sm text-charcoal transition-colors;

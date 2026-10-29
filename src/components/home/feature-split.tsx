@@ -37,7 +37,7 @@ export function FeatureSplit({
             src={image}
             alt={alt}
             sizes="(max-width:1024px) 100vw, 50vw"
-            className="h-full w-full"
+            className="h-full w-full" fit="cover"
           />
         </div>
         <div className={cn(reverse && "lg:order-1")}>

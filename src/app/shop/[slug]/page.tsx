@@ -13,6 +13,7 @@ import {
 } from "@/lib/catalog";
 import { categoryMeta } from "@/lib/site";
 import { formatPrice } from "@/lib/utils";
+import { sanitizeDescription, looksLikeHtml } from "@/lib/rich-text";
 
 type Params = Promise<{ slug: string }>;
 
@@ -102,11 +103,21 @@ export default async function ProductPage({ params }: { params: Params }) {
             </div>
           )}
 
-          <p className="mt-5 max-w-md text-sm leading-relaxed text-charcoal/70">
-            {product.description}
-          </p>
-
           <ProductPurchase product={product} />
+
+          {product.description &&
+            (looksLikeHtml(product.description) ? (
+              <div
+                className="rich-text mt-8 max-w-md border-t border-border pt-6"
+                dangerouslySetInnerHTML={{
+                  __html: sanitizeDescription(product.description),
+                }}
+              />
+            ) : (
+              <p className="mt-8 max-w-md border-t border-border pt-6 text-sm leading-relaxed text-charcoal/70">
+                {product.description}
+              </p>
+            ))}
 
           <div className="mt-6 flex items-center gap-2 rounded-lg bg-cream px-4 py-3 text-xs text-charcoal/70">
             <Truck className="size-4 text-muted-gold" strokeWidth={1.5} />

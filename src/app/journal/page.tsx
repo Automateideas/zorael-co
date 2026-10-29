@@ -50,7 +50,7 @@ export default function JournalPage() {
             priority
             sizes="(max-width:1024px) 100vw, 50vw"
             className="h-full w-full"
-            imgClassName="transition-transform duration-700 group-hover:scale-105"
+            imgClassName="transition-transform duration-700 group-hover:scale-105" fit="cover"
           />
         </div>
         <div className="flex flex-col justify-center p-8 lg:p-12">
@@ -84,7 +84,7 @@ export default function JournalPage() {
                   alt={post.title}
                   sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 33vw"
                   className="h-full w-full"
-                  imgClassName="transition-transform duration-700 group-hover:scale-105"
+                  imgClassName="transition-transform duration-700 group-hover:scale-105" fit="cover"
                 />
               </div>
               <p className="eyebrow mt-4">
