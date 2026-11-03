@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { Media } from "@/components/media";
+import { ImageRotator } from "./image-rotator";
 import { img, PHOTO } from "@/lib/images";
 
 const cards = [
@@ -30,26 +30,33 @@ const cards = [
 export function FeaturedCategories({
   images,
 }: {
-  /** Keyed by the card's category slug; falls back to the built-in art. */
-  images?: Record<string, string>;
+  /**
+   * Keyed by the card's category slug; falls back to the built-in art.
+   * More than one image turns that card into a crossfading gallery.
+   */
+  images?: Record<string, string[]>;
 }) {
   return (
     <section className="container-zorael py-14 lg:py-20">
       <div className="grid gap-5 md:grid-cols-3">
-        {cards.map((card) => (
+        {cards.map((card) => {
+          const slug = card.href.split("=")[1];
+          const gallery = images?.[slug]?.length
+            ? images[slug]
+            : [card.image];
+          return (
           <article
             key={card.title}
             className="group relative overflow-hidden rounded-lg bg-cream"
           >
             <div className="relative aspect-[5/4] w-full sm:aspect-[4/3]">
-              <Media
-                src={images?.[card.href.split("=")[1]] || card.image}
+              <ImageRotator
+                images={gallery}
                 alt={card.alt}
                 sizes="(max-width:768px) 100vw, 33vw"
-                className="h-full w-full"
-                imgClassName="transition-transform duration-700 ease-out group-hover:scale-105" fit="cover"
+                imgClassName="transition-transform duration-700 ease-out group-hover:scale-105"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-charcoal/70 via-charcoal/10 to-transparent" />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-charcoal/70 via-charcoal/10 to-transparent" />
             </div>
             <div className="absolute inset-x-0 bottom-0 p-6 text-ivory">
               <h3 className="font-serif text-2xl tracking-tight">
@@ -74,7 +81,8 @@ export function FeaturedCategories({
               </div>
             </div>
           </article>
-        ))}
+          );
+        })}
       </div>
     </section>
   );

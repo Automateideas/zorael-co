@@ -59,6 +59,7 @@ function toProduct(row: ProductRow): Product {
     reviews: row.reviews ?? undefined,
     sizes: row.sizes ?? undefined,
     colors: row.colors ?? undefined,
+    colorHexes: row.colorHexes ?? null,
     materials: row.materials ?? undefined,
     details: row.details ?? undefined,
     care: row.care ?? undefined,

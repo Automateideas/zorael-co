@@ -16,9 +16,9 @@ export default async function Home() {
       <Hero images={siteImages.hero} />
       <FeaturedCategories
         images={{
-          women: siteImages["category-women"][0],
-          accessories: siteImages["category-accessories"][0],
-          "brand-collection": siteImages["category-brand-collection"][0],
+          women: siteImages["category-women"],
+          accessories: siteImages["category-accessories"],
+          "brand-collection": siteImages["category-brand-collection"],
         }}
       />
       <NewArrivals image={siteImages["new-arrivals"][0]} />

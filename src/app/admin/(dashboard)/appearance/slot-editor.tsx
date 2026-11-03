@@ -196,6 +196,7 @@ export function SlotEditor({ slot }: { slot: Slot }) {
       {pickerOpen && (
         <ImagePicker
           alreadyAdded={images}
+          single={!slot.multiple}
           onClose={() => setPickerOpen(false)}
           onConfirm={add}
         />

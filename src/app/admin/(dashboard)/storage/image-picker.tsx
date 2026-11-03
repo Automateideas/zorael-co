@@ -14,11 +14,14 @@ export function ImagePicker({
   onClose,
   onConfirm,
   saving = false,
+  single = false,
 }: {
   alreadyAdded: string[];
   onClose: () => void;
   onConfirm: (urls: string[]) => void;
   saving?: boolean;
+  /** This slot holds one image, so picking a second replaces the first. */
+  single?: boolean;
 }) {
   const [prefix, setPrefix] = useState("");
   const [data, setData] = useState<BrowseResult | null>(null);
@@ -45,9 +48,12 @@ export function ImagePicker({
 
   const toggle = (url: string) =>
     setPicked((prev) => {
+      if (prev.has(url)) return new Set<string>();
+      // Letting a one-image slot collect several picks and then silently
+      // keeping only the last is the confusing part — replace instead.
+      if (single) return new Set([url]);
       const next = new Set(prev);
-      if (next.has(url)) next.delete(url);
-      else next.add(url);
+      next.add(url);
       return next;
     });
 
@@ -187,7 +193,9 @@ export function ImagePicker({
         {/* Footer */}
         <div className="flex items-center justify-between border-t border-border px-5 py-3.5">
           <span className="text-xs text-charcoal/50">
-            {picked.size} selected
+            {single
+              ? `${picked.size} selected — this slot holds one image`
+              : `${picked.size} selected`}
           </span>
           <div className="flex gap-3">
             <button

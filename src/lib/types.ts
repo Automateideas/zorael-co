@@ -17,6 +17,8 @@ export type Product = {
   reviews?: number;
   sizes?: string[];
   colors?: string[];
+  /** Exact swatch per colour name — display only, never shown as the name. */
+  colorHexes?: Record<string, string> | null;
   materials?: string[];
   details?: string[];
   care?: string[];

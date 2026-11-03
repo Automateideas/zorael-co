@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { resolveSwatch } from "@/lib/colors";
 import {
   saveProduct,
   uploadProductImages,
@@ -41,6 +42,7 @@ type ProductRow = {
   images: string[];
   sizes: string[] | null;
   colors: string[] | null;
+  colorHexes: Record<string, string> | null;
   materials: string[] | null;
   details: string[] | null;
   care: string[] | null;
@@ -92,6 +94,9 @@ export function ProductEditor({
   const [description, setDescription] = useState(product?.description ?? "");
   const [sizes, setSizes] = useState(product?.sizes?.join(", ") ?? "");
   const [colors, setColors] = useState(product?.colors?.join(", ") ?? "");
+  const [colorHexes, setColorHexes] = useState<Record<string, string>>(
+    product?.colorHexes ?? {},
+  );
   const [materials, setMaterials] = useState(product?.materials?.join(", ") ?? "");
   const [detailsStr, setDetailsStr] = useState(product?.details?.join("\n") ?? "");
   const [careStr, setCareStr] = useState(product?.care?.join("\n") ?? "");
@@ -159,6 +164,7 @@ export function ProductEditor({
         description: description.trim() || undefined,
         sizes: splitList(sizes),
         colors: splitList(colors),
+        colorHexes,
         materials: splitList(materials),
         details: splitLines(detailsStr),
         care: splitLines(careStr),
@@ -478,7 +484,7 @@ export function ProductEditor({
             label="Colors (comma-separated)"
             value={colors}
             onChange={setColors}
-            placeholder="Noir, Ivory, Burgundy"
+            placeholder="Red, Rani Pink, Multicolour"
           />
           <Field
             label="Materials (comma-separated)"
@@ -487,6 +493,88 @@ export function ProductEditor({
             placeholder="100% Silk, Lining: Cupro"
           />
         </div>
+
+        {/* Each colour as the storefront will draw it, with an optional exact
+            shade. A name that cannot be resolved is caught here rather than by
+            a customer. */}
+        {splitList(colors).length > 0 && (
+          <div className="mt-4 border-t border-border pt-4">
+            <p className="text-xs font-medium uppercase tracking-wide text-charcoal/50">
+              Colour swatches
+            </p>
+            <p className="mt-1 text-xs text-charcoal/45">
+              Each colour is matched from its name. Pick a shade only when the
+              fabric needs an exact match — the customer always sees the name,
+              never the code.
+            </p>
+            <div className="mt-3 space-y-2">
+              {splitList(colors).map((c) => {
+                const custom = colorHexes[c];
+                const swatch = resolveSwatch(c);
+                const shown = custom ?? swatch.background;
+                return (
+                  <div
+                    key={c}
+                    className="flex flex-wrap items-center gap-3 rounded-md border border-border px-3 py-2"
+                  >
+                    <span
+                      className="size-7 shrink-0 rounded-full border border-border"
+                      style={{ background: shown }}
+                    />
+                    <span className="min-w-28 text-sm text-charcoal">{c}</span>
+
+                    {!custom && !swatch.known && (
+                      <span className="text-xs text-muted-gold">
+                        name not recognised — will show as text
+                      </span>
+                    )}
+                    {!custom && swatch.known && (
+                      <span className="text-xs text-charcoal/40">
+                        matched from name
+                      </span>
+                    )}
+                    {custom && (
+                      <span className="text-xs text-charcoal/40">
+                        exact shade {custom.toUpperCase()}
+                      </span>
+                    )}
+
+                    <label className="ml-auto flex items-center gap-2 text-xs text-charcoal/60">
+                      <span>Pick shade</span>
+                      <input
+                        type="color"
+                        aria-label={`Exact shade for ${c}`}
+                        value={custom ?? toHexInput(swatch.background)}
+                        onChange={(e) =>
+                          setColorHexes((prev) => ({
+                            ...prev,
+                            [c]: e.target.value,
+                          }))
+                        }
+                        className="h-8 w-12 cursor-pointer rounded border border-border bg-white p-0.5"
+                      />
+                    </label>
+                    {custom && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setColorHexes((prev) => {
+                            const next = { ...prev };
+                            delete next[c];
+                            return next;
+                          })
+                        }
+                        className="text-xs text-charcoal/50 underline underline-offset-2 hover:text-charcoal"
+                      >
+                        Use name
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </section>
 
       {/* Details / Care / Shipping */}
@@ -799,4 +887,12 @@ function Checkbox({
       {label}
     </label>
   );
+}
+
+/**
+ * `<input type="color">` only accepts a plain 6-digit hex, so a gradient
+ * (Multicolour) or an unresolved name needs a sensible starting shade.
+ */
+function toHexInput(background: string): string {
+  return /^#[0-9a-f]{6}$/i.test(background) ? background : "#B79A5A";
 }

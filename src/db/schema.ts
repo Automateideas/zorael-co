@@ -100,6 +100,10 @@ export const products = pgTable(
     images: jsonb("images").$type<string[]>().notNull().default([]),
     sizes: jsonb("sizes").$type<string[]>(),
     colors: jsonb("colors").$type<string[]>(),
+    // Optional exact swatch per colour name, e.g. { "Rani Pink": "#D81B60" }.
+    // Only overrides how the circle is drawn — the name is what the customer
+    // sees and what is recorded on the order.
+    colorHexes: jsonb("color_hexes").$type<Record<string, string>>(),
     materials: jsonb("materials").$type<string[]>(),
     details: jsonb("details").$type<string[]>(),
     care: jsonb("care").$type<string[]>(),

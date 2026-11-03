@@ -28,20 +28,20 @@ export const IMAGE_SLOTS = {
   },
   "category-women": {
     label: "Category Card — Women",
-    hint: "Tall portrait crop.",
-    multiple: false,
+    hint: "Tall portrait crops. Add more than one and the card becomes a slideshow.",
+    multiple: true,
     defaults: [img(PHOTO.ivoryDress, 800, 900)],
   },
   "category-accessories": {
     label: "Category Card — Accessories",
-    hint: "Tall portrait crop.",
-    multiple: false,
+    hint: "Tall portrait crops. Add more than one and the card becomes a slideshow.",
+    multiple: true,
     defaults: [img(PHOTO.necklaceGold, 800, 900)],
   },
   "category-brand-collection": {
     label: "Category Card — Brand Collection",
-    hint: "Tall portrait crop.",
-    multiple: false,
+    hint: "Tall portrait crops. Add more than one and the card becomes a slideshow.",
+    multiple: true,
     defaults: [img(PHOTO.handbagHero, 800, 900)],
   },
   "editorial-banner": {

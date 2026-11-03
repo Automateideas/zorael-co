@@ -138,7 +138,11 @@ export function ProductPurchase({ product }: { product: Product }) {
           <div className="mt-3 flex flex-wrap gap-2.5">
             {product.colors.map((c) => {
               const oos = isColorOutOfStock(c);
-              const swatch = resolveSwatch(c);
+              // An exact shade set in admin wins over the name match.
+              const exact = product.colorHexes?.[c];
+              const swatch = exact
+                ? { background: exact, known: true }
+                : resolveSwatch(c);
               // An unresolved name would draw every circle the same neutral
               // beige, so show the name itself rather than a misleading colour.
               if (!swatch.known) {

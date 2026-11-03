@@ -50,6 +50,7 @@ export type ProductFormData = {
   description?: string;
   sizes?: string[];
   colors?: string[];
+  colorHexes?: Record<string, string> | null;
   materials?: string[];
   details?: string[];
   care?: string[];
@@ -89,6 +90,17 @@ export async function saveProduct(data: ProductFormData) {
     description: data.description || "",
     sizes: data.sizes?.length ? data.sizes : null,
     colors: data.colors?.length ? data.colors : null,
+    // Keep only hexes for colours this product still lists, so renaming or
+    // removing a colour cannot leave an orphaned override behind.
+    colorHexes: (() => {
+      const kept = Object.fromEntries(
+        Object.entries(data.colorHexes ?? {}).filter(
+          ([name, hex]) =>
+            data.colors?.includes(name) && /^#[0-9a-f]{6}$/i.test(hex),
+        ),
+      );
+      return Object.keys(kept).length ? kept : null;
+    })(),
     materials: data.materials?.length ? data.materials : null,
     details: data.details?.length ? data.details : null,
     care: data.care?.length ? data.care : null,

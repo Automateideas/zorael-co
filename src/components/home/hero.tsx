@@ -1,10 +1,11 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { Media } from "@/components/media";
 import { img, PHOTO } from "@/lib/images";
+import { useAutoAdvance } from "@/lib/use-auto-advance";
 
 const slides = [
   {
@@ -49,16 +50,18 @@ export function Hero({ images }: { images?: string[] }) {
     ...(slides[i] ?? slides[slides.length - 1]),
     image,
   }));
-  const [index, setIndex] = useState(0);
   const count = shown.length;
-
-  const go = useCallback(
-    (dir: number) => setIndex((i) => (i + dir + count) % count),
-    [count],
-  );
+  const [paused, setPaused] = useState(false);
+  const { index, go, goTo } = useAutoAdvance({ count, delayMs: 6000, paused });
 
   return (
-    <section className="relative isolate overflow-hidden bg-cream">
+    <section
+      className="relative isolate overflow-hidden bg-cream"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onFocusCapture={() => setPaused(true)}
+      onBlurCapture={() => setPaused(false)}
+    >
       <div className="relative aspect-[4/5] w-full sm:aspect-[16/10] lg:aspect-[16/7]">
         {shown.map((slide, i) => (
           <div
@@ -144,7 +147,7 @@ export function Hero({ images }: { images?: string[] }) {
                 <button
                   key={i}
                   type="button"
-                  onClick={() => setIndex(i)}
+                  onClick={() => goTo(i)}
                   aria-label={`Go to slide ${i + 1}`}
                   aria-current={i === index}
                   className={`h-1 rounded-full transition-all ${
