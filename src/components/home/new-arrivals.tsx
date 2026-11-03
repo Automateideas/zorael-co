@@ -6,7 +6,7 @@ import { Media } from "@/components/media";
 import { getNewArrivals } from "@/lib/catalog";
 import { img, PHOTO } from "@/lib/images";
 
-export async function NewArrivals() {
+export async function NewArrivals({ image }: { image?: string }) {
   const products = await getNewArrivals(6);
 
   return (
@@ -34,7 +34,7 @@ export async function NewArrivals() {
         <aside className="relative overflow-hidden rounded-lg bg-charcoal text-ivory">
           <div className="relative aspect-[4/5] lg:aspect-auto lg:h-full">
             <Media
-              src={img(PHOTO.jewelleryFlat, 700, 900)}
+              src={image || img(PHOTO.jewelleryFlat, 700, 900)}
               alt="Accessories collection"
               sizes="(max-width:1024px) 100vw, 340px"
               className="h-full w-full"

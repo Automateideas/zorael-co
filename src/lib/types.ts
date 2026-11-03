@@ -8,6 +8,8 @@ export type Product = {
   subcategory?: string;
   collection?: string;
   price: number;
+  /** Original / MRP, shown struck through. Null when not discounted. */
+  compareAtPrice?: number | null;
   currency: string;
   images: string[];
   description: string;

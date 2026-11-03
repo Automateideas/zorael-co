@@ -22,10 +22,18 @@ function createClient() {
     );
   }
   const sql = postgres(url, {
-    max: Number(process.env.DB_POOL_MAX ?? 1),
+    // Never 1. A single shared connection means one abandoned query — a
+    // cancelled request, a browser navigating away mid-render — blocks every
+    // later read until the server restarts: Postgres keeps running the
+    // orphaned statement to its statement_timeout, and postgres.js delivers
+    // that stale error to whichever query reuses the connection next.
+    max: Number(process.env.DB_POOL_MAX ?? 5),
     prepare: false,
     idle_timeout: 20,
     connect_timeout: 10,
+    // Recycle connections so one left in a bad state cannot persist for the
+    // lifetime of a long-running dev server or serverless instance.
+    max_lifetime: 60 * 30,
     ssl: process.env.DB_SSL === "disable" ? false : "require",
   });
   return drizzle(sql, { schema });

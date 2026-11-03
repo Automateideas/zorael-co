@@ -6,14 +6,23 @@ import { FeatureSplit } from "@/components/home/feature-split";
 import { BrandStory } from "@/components/home/brand-story";
 import { TrustBar } from "@/components/home/trust-bar";
 import { img, PHOTO } from "@/lib/images";
+import { getSiteImages } from "@/lib/site-images";
 
-export default function Home() {
+export default async function Home() {
+  const siteImages = await getSiteImages();
+
   return (
     <>
-      <Hero />
-      <FeaturedCategories />
-      <NewArrivals />
-      <EditorialBanner />
+      <Hero images={siteImages.hero} />
+      <FeaturedCategories
+        images={{
+          women: siteImages["category-women"][0],
+          accessories: siteImages["category-accessories"][0],
+          "brand-collection": siteImages["category-brand-collection"][0],
+        }}
+      />
+      <NewArrivals image={siteImages["new-arrivals"][0]} />
+      <EditorialBanner image={siteImages["editorial-banner"][0]} />
       <FeatureSplit
         eyebrow="Accessories"
         title="The finishing touch."

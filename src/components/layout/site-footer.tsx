@@ -151,6 +151,17 @@ export function SiteFooter() {
           <p className="tracking-[0.16em] text-ivory/40">
             LUXURY IN EVERY DETAIL
           </p>
+          <p className="text-ivory/40">
+            Developed by{" "}
+            <a
+              href="https://automateideas.in/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-ivory/60 underline underline-offset-2 transition-colors hover:text-gold"
+            >
+              Automate Ideas
+            </a>
+          </p>
         </div>
       </div>
     </footer>

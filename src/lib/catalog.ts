@@ -51,6 +51,7 @@ function toProduct(row: ProductRow): Product {
     subcategory: row.subcategory ?? undefined,
     collection: row.collection ?? undefined,
     price: row.price,
+    compareAtPrice: row.compareAtPrice ?? null,
     currency: row.currency,
     images: row.images,
     description: row.description,
@@ -67,19 +68,49 @@ function toProduct(row: ProductRow): Product {
   };
 }
 
-/** Runs a DB query, or the static fallback when there is no (working) DB. */
+/** A read that outlives this is wedged, not slow — fail fast and retry. */
+const QUERY_TIMEOUT_MS = Number(process.env.DB_QUERY_TIMEOUT_MS ?? 8000);
+
+function withTimeout<T>(query: () => Promise<T>): Promise<T> {
+  let timer: ReturnType<typeof setTimeout>;
+  return Promise.race([
+    query(),
+    new Promise<never>((_, reject) => {
+      timer = setTimeout(
+        () => reject(new Error(`Catalog query exceeded ${QUERY_TIMEOUT_MS}ms`)),
+        QUERY_TIMEOUT_MS,
+      );
+    }),
+  ]).finally(() => clearTimeout(timer)) as Promise<T>;
+}
+
+/**
+ * Runs a DB query, or the static fallback when there is no DB configured.
+ *
+ * When a database IS configured, a failure is retried once (which picks up a
+ * different pooled connection, clearing a wedged one) and then rethrown. It is
+ * deliberately NOT swallowed: silently serving `products.ts` would show the
+ * storefront a catalog that does not exist in the database — phantom pieces a
+ * customer can add to their bag and order.
+ */
 async function withFallback<T>(
   query: () => Promise<T>,
   fallback: () => T,
 ): Promise<T> {
   if (!hasDatabase()) return fallback();
   try {
-    return await query();
-  } catch (err) {
-    console.error("[catalog] database read failed, using static data:", err);
-    return fallback();
+    return await withTimeout(query);
+  } catch (first) {
+    console.error("[catalog] database read failed, retrying once:", first);
+    try {
+      return await withTimeout(query);
+    } catch (err) {
+      console.error("[catalog] database read failed after retry:", err);
+      throw err;
+    }
   }
 }
+
 
 const published = eq(productsTable.isPublished, true);
 const byOrder = [asc(productsTable.createdAt), asc(productsTable.id)] as const;

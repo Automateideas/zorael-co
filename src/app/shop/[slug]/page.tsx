@@ -12,7 +12,7 @@ import {
   getRelatedProducts,
 } from "@/lib/catalog";
 import { categoryMeta } from "@/lib/site";
-import { formatPrice } from "@/lib/utils";
+import { Price } from "@/components/product/price";
 import { sanitizeDescription, looksLikeHtml } from "@/lib/rich-text";
 
 type Params = Promise<{ slug: string }>;
@@ -80,9 +80,13 @@ export default async function ProductPage({ params }: { params: Params }) {
             {product.name}
           </h1>
 
-          <p className="mt-3 text-2xl text-charcoal">
-            {formatPrice(product.price, product.currency)}
-          </p>
+          <Price
+            price={product.price}
+            compareAt={product.compareAtPrice}
+            currency={product.currency}
+            size="lg"
+            className="mt-3"
+          />
 
           {product.rating && (
             <div className="mt-3 flex items-center gap-2">

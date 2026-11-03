@@ -27,7 +27,12 @@ const cards = [
   },
 ];
 
-export function FeaturedCategories() {
+export function FeaturedCategories({
+  images,
+}: {
+  /** Keyed by the card's category slug; falls back to the built-in art. */
+  images?: Record<string, string>;
+}) {
   return (
     <section className="container-zorael py-14 lg:py-20">
       <div className="grid gap-5 md:grid-cols-3">
@@ -38,7 +43,7 @@ export function FeaturedCategories() {
           >
             <div className="relative aspect-[5/4] w-full sm:aspect-[4/3]">
               <Media
-                src={card.image}
+                src={images?.[card.href.split("=")[1]] || card.image}
                 alt={card.alt}
                 sizes="(max-width:768px) 100vw, 33vw"
                 className="h-full w-full"

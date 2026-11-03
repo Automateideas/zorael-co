@@ -42,6 +42,22 @@ const ts = (name: string) =>
   timestamp(name, { withTimezone: true }).notNull().defaultNow();
 
 /** Product categories — managed via the admin panel. */
+/**
+ * Editable imagery for fixed page sections (hero carousel, banners, about).
+ * One row per slot; `images` is ordered, so the hero carousel is just a slot
+ * with several entries. An empty or missing row falls back to the built-in
+ * artwork, so the pages never render blank.
+ */
+export const siteImages = pgTable(
+  "site_images",
+  {
+    slot: text("slot").primaryKey(),
+    images: jsonb("images").$type<string[]>().notNull().default([]),
+    updatedAt: ts("updated_at"),
+  },
+  () => [publicRead("site_images")],
+).enableRLS();
+
 export const categories = pgTable(
   "categories",
   {
@@ -70,7 +86,13 @@ export const products = pgTable(
     category: text("category").$type<Category>().notNull(),
     subcategory: text("subcategory"),
     collection: text("collection"),
-    price: integer("price").notNull(), // major units (₹)
+    price: integer("price").notNull(), // major units (₹) — what the customer pays
+    /**
+     * Original / MRP shown struck through beside the selling price. Null when
+     * the item is not discounted. Never used for charging — `price` is the
+     * only figure the checkout prices from.
+     */
+    compareAtPrice: integer("compare_at_price"),
     currency: text("currency").notNull().default("INR"),
     description: text("description").notNull().default(""),
     rating: real("rating"),

@@ -41,9 +41,16 @@ const slides = [
   },
 ];
 
-export function Hero() {
+export function Hero({ images }: { images?: string[] }) {
+  // Admin-managed images replace the built-in artwork one-for-one; extra
+  // images reuse the last slide's copy so the carousel can grow freely.
+  const slideImages = images?.length ? images : slides.map((s) => s.image);
+  const shown = slideImages.map((image, i) => ({
+    ...(slides[i] ?? slides[slides.length - 1]),
+    image,
+  }));
   const [index, setIndex] = useState(0);
-  const count = slides.length;
+  const count = shown.length;
 
   const go = useCallback(
     (dir: number) => setIndex((i) => (i + dir + count) % count),
@@ -53,7 +60,7 @@ export function Hero() {
   return (
     <section className="relative isolate overflow-hidden bg-cream">
       <div className="relative aspect-[4/5] w-full sm:aspect-[16/10] lg:aspect-[16/7]">
-        {slides.map((slide, i) => (
+        {shown.map((slide, i) => (
           <div
             key={i}
             className={`absolute inset-0 transition-opacity duration-1000 ${
@@ -81,27 +88,27 @@ export function Hero() {
                 key={`e-${index}`}
                 className="animate-fade-up text-[0.7rem] font-medium uppercase tracking-[0.24em] text-ivory/85"
               >
-                {slides[index].eyebrow}
+                {shown[index]?.eyebrow}
               </p>
               <h1
                 key={`t-${index}`}
                 className="animate-fade-up mt-4 font-serif text-4xl leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl"
               >
-                {slides[index].title[0]}
+                {shown[index]?.title[0]}
                 <br />
-                {slides[index].title[1]}
+                {shown[index]?.title[1]}
               </h1>
               <p
                 key={`c-${index}`}
                 className="animate-fade-up mt-5 max-w-md text-sm leading-relaxed text-ivory/85 sm:text-base"
               >
-                {slides[index].copy}
+                {shown[index]?.copy}
               </p>
               <Link
-                href={slides[index].cta.href}
+                href={shown[index]?.cta.href}
                 className="mt-8 inline-flex h-12 items-center gap-2 rounded-full border border-ivory/70 px-7 text-sm font-medium text-ivory transition-colors hover:bg-ivory hover:text-charcoal"
               >
-                {slides[index].cta.label}
+                {shown[index]?.cta.label}
                 <ArrowRight className="size-4" strokeWidth={1.5} />
               </Link>
             </div>
@@ -133,7 +140,7 @@ export function Hero() {
               {String(index + 1).padStart(2, "0")} / {String(count).padStart(2, "0")}
             </span>
             <div className="flex gap-2">
-              {slides.map((_, i) => (
+              {shown.map((_, i) => (
                 <button
                   key={i}
                   type="button"

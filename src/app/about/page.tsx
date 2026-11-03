@@ -4,7 +4,7 @@ import { Breadcrumbs } from "@/components/breadcrumbs";
 import { Media } from "@/components/media";
 import { PillLink } from "@/components/pill-link";
 import { Monogram } from "@/components/layout/logo";
-import { img, PHOTO } from "@/lib/images";
+import { getSiteImages } from "@/lib/site-images";
 
 export const metadata: Metadata = {
   title: "About Us",
@@ -35,14 +35,16 @@ const values = [
   },
 ];
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const siteImages = await getSiteImages();
+
   return (
     <div>
       {/* Hero */}
       <section className="relative isolate overflow-hidden bg-cream">
         <div className="relative aspect-4/5 w-full sm:aspect-[16/9] lg:aspect-[16/6]">
           <Media
-            src={img(PHOTO.aboutInterior, 1800, 900)}
+            src={siteImages["about-hero"][0]}
             alt="The Zorael atelier"
             priority
             sizes="100vw"
@@ -85,7 +87,7 @@ export default function AboutPage() {
         <div className="mt-16 grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
           <div className="relative aspect-[4/5] overflow-hidden rounded-lg">
             <Media
-              src={img(PHOTO.brandStory, 1000, 1250)}
+              src={siteImages["about-story"][0]}
               alt="Craftsmanship at Zorael"
               sizes="(max-width:1024px) 100vw, 50vw"
               className="h-full w-full" fit="cover"

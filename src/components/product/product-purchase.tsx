@@ -6,6 +6,7 @@ import { Check, Heart, Minus, Plus, ShoppingBag } from "lucide-react";
 import type { Product } from "@/lib/types";
 import { useStore } from "@/components/providers/store-provider";
 import { cn } from "@/lib/utils";
+import { resolveSwatch, sameOption } from "@/lib/colors";
 
 type VariantInfo = {
   size: string | null;
@@ -15,28 +16,6 @@ type VariantInfo = {
   lowStock: boolean;
 };
 
-const colorSwatch: Record<string, string> = {
-  Ivory: "#F5F1E8",
-  Champagne: "#E6D5A8",
-  Sand: "#D8C7A5",
-  Charcoal: "#171613",
-  Ruby: "#8B1E3F",
-  Emerald: "#0F5132",
-  Midnight: "#1A2238",
-  Saffron: "#E1A140",
-  Rose: "#D9A5A0",
-  Pearl: "#F1ECE2",
-  Noir: "#0D0D0B",
-  Blush: "#E8CFC7",
-  Sage: "#B7BFA6",
-  Clay: "#B08968",
-  Wine: "#6E1423",
-  Forest: "#2C3B2D",
-  Black: "#0D0D0B",
-  Taupe: "#D8CFBF",
-  Cognac: "#9A5B34",
-  Burgundy: "#5C1A2B",
-};
 
 export function ProductPurchase({ product }: { product: Product }) {
   const { addItem, toggleWishlist, isWishlisted, ready } = useStore();
@@ -69,10 +48,11 @@ export function ProductPurchase({ product }: { product: Product }) {
   }, [product.slug]);
 
   // Find stock for the currently selected variant
+  // Compared case/space-insensitively: a variant saved as "Rani pink" against
+  // a product colour of "Rani Pink" would otherwise never match, which the UI
+  // reports as a permanent "Out of Stock".
   const selectedVariant = variants.find(
-    (v) =>
-      (v.size ?? null) === (size ?? null) &&
-      (v.color ?? null) === (color ?? null),
+    (v) => sameOption(v.size, size) && sameOption(v.color, color),
   );
 
   const outOfStock = stockLoaded && selectedVariant && !selectedVariant.inStock;
@@ -84,14 +64,14 @@ export function ProductPurchase({ product }: { product: Product }) {
   // Helper: check if a specific size is out of stock across all colours
   const isSizeOutOfStock = (s: string) => {
     if (!stockLoaded) return false;
-    const matching = variants.filter((v) => v.size === s);
+    const matching = variants.filter((v) => sameOption(v.size, s));
     return matching.length > 0 && matching.every((v) => !v.inStock);
   };
 
   // Helper: check if a specific colour is out of stock across all sizes
   const isColorOutOfStock = (c: string) => {
     if (!stockLoaded) return false;
-    const matching = variants.filter((v) => v.color === c);
+    const matching = variants.filter((v) => sameOption(v.color, c));
     return matching.length > 0 && matching.every((v) => !v.inStock);
   };
 
@@ -158,12 +138,35 @@ export function ProductPurchase({ product }: { product: Product }) {
           <div className="mt-3 flex flex-wrap gap-2.5">
             {product.colors.map((c) => {
               const oos = isColorOutOfStock(c);
+              const swatch = resolveSwatch(c);
+              // An unresolved name would draw every circle the same neutral
+              // beige, so show the name itself rather than a misleading colour.
+              if (!swatch.known) {
+                return (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => setColor(c)}
+                    aria-pressed={color === c}
+                    className={cn(
+                      "h-8 rounded-full border px-3 text-xs transition-all",
+                      color === c
+                        ? "border-charcoal text-charcoal ring-1 ring-charcoal ring-offset-2 ring-offset-background"
+                        : "border-border text-charcoal/70",
+                      oos && "opacity-40 line-through",
+                    )}
+                  >
+                    {c}
+                  </button>
+                );
+              }
               return (
                 <button
                   key={c}
                   type="button"
                   onClick={() => setColor(c)}
                   aria-label={`${c}${oos ? " (out of stock)" : ""}`}
+                  title={c}
                   aria-pressed={color === c}
                   className={cn(
                     "relative size-8 rounded-full border transition-all",
@@ -172,7 +175,7 @@ export function ProductPurchase({ product }: { product: Product }) {
                       : "border-border",
                     oos && "opacity-40",
                   )}
-                  style={{ backgroundColor: colorSwatch[c] ?? "#D8CFBF" }}
+                  style={{ background: swatch.background }}
                 >
                   {oos && (
                     <span className="absolute inset-0 flex items-center justify-center">

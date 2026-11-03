@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { Product } from "@/lib/types";
-import { cn, formatPrice } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import { Price } from "./price";
 import { Media } from "@/components/media";
 import { WishlistButton } from "./wishlist-button";
 
@@ -95,9 +96,13 @@ export function ProductCard({
           <h3 className="text-sm text-charcoal transition-colors group-hover:text-muted-gold">
             <Link href={`/shop/${product.slug}`}>{product.name}</Link>
           </h3>
-          <p className="mt-1 text-sm text-charcoal/70">
-            {formatPrice(product.price, product.currency)}
-          </p>
+          <Price
+            price={product.price}
+            compareAt={product.compareAtPrice}
+            currency={product.currency}
+            size="sm"
+            className="mt-1"
+          />
         </div>
       </div>
     </article>

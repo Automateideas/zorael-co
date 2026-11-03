@@ -2,12 +2,12 @@ import { Media } from "@/components/media";
 import { PillLink } from "@/components/pill-link";
 import { img, PHOTO } from "@/lib/images";
 
-export function EditorialBanner() {
+export function EditorialBanner({ image }: { image?: string }) {
   return (
     <section className="relative isolate my-6 overflow-hidden">
       <div className="relative aspect-[4/5] w-full sm:aspect-[16/9] lg:aspect-[16/6]">
         <Media
-          src={img(PHOTO.editorialWoman, 1800, 900)}
+          src={image || img(PHOTO.editorialWoman, 1800, 900)}
           alt="Zorael editorial campaign"
           sizes="100vw"
           className="h-full w-full" fit="cover"

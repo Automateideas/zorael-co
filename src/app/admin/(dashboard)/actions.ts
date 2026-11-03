@@ -45,6 +45,7 @@ export type ProductFormData = {
   subcategory?: string;
   collection?: string;
   price: number;
+  compareAtPrice?: number | null;
   currency?: string;
   description?: string;
   sizes?: string[];
@@ -79,6 +80,11 @@ export async function saveProduct(data: ProductFormData) {
     subcategory: data.subcategory || null,
     collection: data.collection || null,
     price: data.price,
+    // Only a value above the selling price is a real MRP.
+    compareAtPrice:
+      data.compareAtPrice && data.compareAtPrice > data.price
+        ? data.compareAtPrice
+        : null,
     currency: data.currency || "INR",
     description: data.description || "",
     sizes: data.sizes?.length ? data.sizes : null,

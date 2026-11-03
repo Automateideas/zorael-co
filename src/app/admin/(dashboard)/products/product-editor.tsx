@@ -35,6 +35,7 @@ type ProductRow = {
   subcategory: string | null;
   collection: string | null;
   price: number;
+  compareAtPrice?: number | null;
   currency: string;
   description: string;
   images: string[];
@@ -85,6 +86,9 @@ export function ProductEditor({
   const [subcategory, setSubcategory] = useState(product?.subcategory ?? "");
   const [collection, setCollection] = useState(product?.collection ?? "");
   const [price, setPrice] = useState(product?.price?.toString() ?? "");
+  const [compareAtPrice, setCompareAtPrice] = useState(
+    product?.compareAtPrice?.toString() ?? "",
+  );
   const [description, setDescription] = useState(product?.description ?? "");
   const [sizes, setSizes] = useState(product?.sizes?.join(", ") ?? "");
   const [colors, setColors] = useState(product?.colors?.join(", ") ?? "");
@@ -151,6 +155,7 @@ export function ProductEditor({
         subcategory: subcategory.trim() || undefined,
         collection: collection.trim() || undefined,
         price: Number(price),
+        compareAtPrice: compareAtPrice ? Number(compareAtPrice) : null,
         description: description.trim() || undefined,
         sizes: splitList(sizes),
         colors: splitList(colors),
@@ -317,6 +322,13 @@ export function ProductEditor({
             onChange={setPrice}
             type="number"
             required
+          />
+          <Field
+            label="MRP (optional)"
+            value={compareAtPrice}
+            onChange={setCompareAtPrice}
+            type="number"
+            placeholder="Shown struck through — leave blank if not discounted"
           />
         </div>
       </section>
