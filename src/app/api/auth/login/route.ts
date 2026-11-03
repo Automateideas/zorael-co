@@ -7,6 +7,7 @@ import {
 } from "@/lib/auth";
 import { verifyPassword } from "@/lib/password";
 import { hasDatabase } from "@/db/client";
+import { clientIp, rateLimit, resetRateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -19,6 +20,17 @@ export async function POST(request: Request) {
     phone?: string;
     password?: string;
   };
+
+  // /api/admin/login has always capped attempts; this one did not, leaving
+  // customer passwords open to unlimited online guessing.
+  const limitKey = `customer-login:${clientIp(request)}`;
+  const limit = rateLimit(limitKey, 10, 15 * 60 * 1000);
+  if (!limit.allowed) {
+    return NextResponse.json(
+      { error: "Too many attempts. Please try again later." },
+      { status: 429, headers: { "retry-after": String(limit.retryAfter) } },
+    );
+  }
 
   if (!phone || !password) {
     return NextResponse.json(
@@ -38,6 +50,8 @@ export async function POST(request: Request) {
   if (!profile || !(await verifyPassword(password, profile.passwordHash))) {
     return NextResponse.json({ error: INVALID }, { status: 401 });
   }
+
+  resetRateLimit(limitKey);
 
   const token = await createSessionToken(profile.id, phone);
   const response = NextResponse.json({

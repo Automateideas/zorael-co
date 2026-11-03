@@ -95,13 +95,20 @@ export class GenericHttpGateway implements PaymentGateway {
 
   async handleWebhook(rawBody: string, headers: Headers): Promise<WebhookResult> {
     const signature = headers.get("x-signature") ?? "";
-    if (this.webhookSecret) {
-      const expected = createHmac("sha256", this.webhookSecret)
-        .update(rawBody)
-        .digest("hex");
-      if (!safeEqual(expected, signature)) {
-        return { received: false };
-      }
+    // Fail closed. An unset secret used to skip verification entirely, which
+    // let anyone POST { orderId, status: "paid" } and have the order marked
+    // paid and stock decremented — free goods.
+    if (!this.webhookSecret) {
+      console.error(
+        "[payments] PAYMENT_WEBHOOK_SECRET is not set — rejecting webhook.",
+      );
+      return { received: false };
+    }
+    const expected = createHmac("sha256", this.webhookSecret)
+      .update(rawBody)
+      .digest("hex");
+    if (!safeEqual(expected, signature)) {
+      return { received: false };
     }
     try {
       const body = JSON.parse(rawBody) as {

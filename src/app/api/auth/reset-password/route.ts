@@ -7,6 +7,7 @@ import {
   setProfilePassword,
 } from "@/lib/auth";
 import { hashPassword, validatePassword } from "@/lib/password";
+import { rateLimit, resetRateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -30,6 +31,22 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { error: "Phone, session ID and OTP are required." },
       { status: 400 },
+    );
+  }
+
+  // Without a cap, a 6-digit code is brute-forceable — and this endpoint sets
+  // a new password and signs the caller in, i.e. full account takeover. The
+  // sessionId is handed to whoever called send-otp, so the cap has to live
+  // here too, not only on /api/auth/verify-otp.
+  const attemptKey = `reset-verify:${sessionId}`;
+  const attempts = rateLimit(attemptKey, 5, 10 * 60 * 1000);
+  if (!attempts.allowed) {
+    return NextResponse.json(
+      { error: "Too many incorrect attempts. Request a new code." },
+      {
+        status: 429,
+        headers: { "retry-after": String(attempts.retryAfter) },
+      },
     );
   }
 
@@ -63,6 +80,8 @@ export async function POST(request: Request) {
       { status: 500 },
     );
   }
+
+  resetRateLimit(attemptKey);
 
   const profile = await findOrCreateProfile(phone);
   await setProfilePassword(profile.id, await hashPassword(password!));
