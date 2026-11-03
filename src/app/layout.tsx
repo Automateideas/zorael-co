@@ -49,6 +49,12 @@ export const metadata: Metadata = {
     description: SITE.description,
     siteName: SITE.name,
   },
+  // Google Search Console ownership proof. Next renders this as
+  // <meta name="google-site-verification" ...>. Keep it even after the
+  // property is verified — removing it un-verifies the site.
+  verification: {
+    google: "4QPKugSpGCHDYRE9IBFmhqSxMuUsrhUUUj0c2qNLjQU",
+  },
 };
 
 export const viewport: Viewport = {
