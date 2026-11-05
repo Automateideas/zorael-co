@@ -54,8 +54,12 @@ export default function CheckoutSuccessPage() {
         </p>
       )}
       <p className="mt-3 max-w-md text-sm leading-relaxed text-charcoal/60">
-        Your payment has been processed successfully. A confirmation will be
-        sent to your email with tracking details.
+        {/* No email or SMS is sent yet — the DLT template is still pending —
+            so this points at the order history, which does work, rather than
+            promising a message that will never arrive. Restore the
+            notification wording once confirmations actually go out. */}
+        Your payment has been received. You can follow this order and its
+        tracking details in your account at any time.
       </p>
       <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
         <Link
