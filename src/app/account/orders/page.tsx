@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Package, ArrowRight, Truck } from "lucide-react";
+import { Package, ArrowRight } from "lucide-react";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { getSession } from "@/lib/auth";
 import { formatPrice } from "@/lib/utils";
+import { OrderTracking } from "@/components/account/order-tracking";
 import { getMyOrders } from "./actions";
 
 export const metadata: Metadata = {
@@ -148,10 +149,10 @@ export default async function OrdersPage() {
                   </div>
 
                   {order.trackingNumber && (
-                    <p className="mt-2 flex items-center gap-2 border-t border-border pt-2.5 text-xs text-charcoal/65">
-                      <Truck className="size-4 text-muted-gold" strokeWidth={1.5} />
-                      {order.trackingCarrier} — {order.trackingNumber}
-                    </p>
+                    <OrderTracking
+                      carrier={order.trackingCarrier}
+                      awb={order.trackingNumber}
+                    />
                   )}
                 </footer>
               </article>

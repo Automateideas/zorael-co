@@ -16,6 +16,7 @@ import {
 import type { OrderStatusDb } from "@/db/schema";
 import { updateOrderStatus, updateTracking } from "../actions";
 import { cn } from "@/lib/utils";
+import { COURIER_OPTIONS, resolveCourier } from "@/lib/couriers";
 
 type Order = {
   id: string;
@@ -113,6 +114,12 @@ export function OrderDetailClient({
   const [carrier, setCarrier] = useState(order.trackingCarrier ?? "");
   const [tracking, setTracking] = useState(order.trackingNumber ?? "");
   const [trackingSaved, setTrackingSaved] = useState(false);
+  // A courier typed by hand is kept in a free-text field; only names in the
+  // registry produce a tracking link for the customer.
+  const [customCarrier, setCustomCarrier] = useState(
+    () =>
+      !!order.trackingCarrier && !COURIER_OPTIONS.includes(order.trackingCarrier),
+  );
 
   const sc = STATUS_CONFIG[order.status];
   const StatusIcon = sc.icon;
@@ -280,13 +287,39 @@ export function OrderDetailClient({
                   <label className="mb-1.5 block text-xs text-charcoal/50">
                     Carrier
                   </label>
-                  <input
-                    type="text"
-                    value={carrier}
-                    onChange={(e) => setCarrier(e.target.value)}
-                    placeholder="e.g. Delhivery, Blue Dart"
-                    className="h-10 w-full rounded-lg border border-border bg-ivory px-4 text-sm text-charcoal placeholder:text-charcoal/30 focus:border-charcoal focus:outline-none"
-                  />
+                  {/* A picker rather than free text: a typo like "Delhivry"
+                      would silently cost the customer their tracking link. */}
+                  <select
+                    value={customCarrier ? "__other" : carrier}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      if (v === "__other") {
+                        setCustomCarrier(true);
+                        setCarrier("");
+                      } else {
+                        setCustomCarrier(false);
+                        setCarrier(v);
+                      }
+                    }}
+                    className="h-10 w-full rounded-lg border border-border bg-ivory px-4 text-sm text-charcoal focus:border-charcoal focus:outline-none"
+                  >
+                    <option value="">Select courier…</option>
+                    {COURIER_OPTIONS.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                    <option value="__other">Other…</option>
+                  </select>
+                  {customCarrier && (
+                    <input
+                      type="text"
+                      value={carrier}
+                      onChange={(e) => setCarrier(e.target.value)}
+                      placeholder="Courier name"
+                      className="mt-2 h-10 w-full rounded-lg border border-border bg-ivory px-4 text-sm text-charcoal placeholder:text-charcoal/30 focus:border-charcoal focus:outline-none"
+                    />
+                  )}
                 </div>
                 <div>
                   <label className="mb-1.5 block text-xs text-charcoal/50">
@@ -301,6 +334,27 @@ export function OrderDetailClient({
                   />
                 </div>
               </div>
+
+              {tracking.trim() && (
+                <p className="mt-3 text-xs leading-relaxed text-charcoal/50">
+                  {resolveCourier(carrier) ? (
+                    <>
+                      The customer sees this AWB with a copy button and a link to{" "}
+                      <a
+                        href={resolveCourier(carrier)!.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-muted-gold underline underline-offset-2"
+                      >
+                        {resolveCourier(carrier)!.label}
+                      </a>
+                      .
+                    </>
+                  ) : (
+                    "The customer sees this AWB with a copy button, but no tracking link — this courier is not in the list."
+                  )}
+                </p>
+              )}
               <button
                 onClick={handleSaveTracking}
                 disabled={pending}
