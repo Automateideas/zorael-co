@@ -1,6 +1,17 @@
+import { desc, eq } from "drizzle-orm";
+import { unstable_cache } from "next/cache";
 import type { JournalPost } from "./types";
 import { img, PHOTO } from "./images";
+import { getDb, hasDatabase } from "@/db/client";
+import { journalPosts as journalPostsTable } from "@/db/schema";
 
+export const JOURNAL_TAG = "journal";
+
+/**
+ * Seed posts — the built-in editorial content. Used as the fallback when no
+ * database is configured, or before the admin has added any posts, so the
+ * Journal is never blank.
+ */
 export const journalPosts: JournalPost[] = [
   {
     id: "j-quiet-luxury",
@@ -68,6 +79,51 @@ export const journalPosts: JournalPost[] = [
   },
 ];
 
-export function getJournalPost(slug: string): JournalPost | undefined {
-  return journalPosts.find((p) => p.slug === slug);
+type JournalRow = typeof journalPostsTable.$inferSelect;
+
+function toPost(row: JournalRow): JournalPost {
+  return {
+    id: row.id,
+    slug: row.slug,
+    title: row.title,
+    excerpt: row.excerpt,
+    category: row.category,
+    readingTime: row.readingTime,
+    coverImage: row.coverImage,
+    date: row.publishedAt.toISOString(),
+    body: row.body,
+  };
+}
+
+async function readJournalPosts(): Promise<JournalPost[]> {
+  if (!hasDatabase()) return journalPosts;
+  try {
+    const rows = await getDb()
+      .select()
+      .from(journalPostsTable)
+      .where(eq(journalPostsTable.isPublished, true))
+      .orderBy(
+        desc(journalPostsTable.sortOrder),
+        desc(journalPostsTable.publishedAt),
+      );
+    // Empty table (fresh install) → keep the seed content visible.
+    return rows.length > 0 ? rows.map(toPost) : journalPosts;
+  } catch {
+    return journalPosts;
+  }
+}
+
+/** Published posts for the storefront, newest first. Cached + tag-revalidated. */
+export const getJournalPosts = unstable_cache(
+  readJournalPosts,
+  ["journal", "published"],
+  { tags: [JOURNAL_TAG], revalidate: 300 },
+);
+
+/** One published post by slug (or undefined). */
+export async function getJournalPost(
+  slug: string,
+): Promise<JournalPost | undefined> {
+  const posts = await getJournalPosts();
+  return posts.find((p) => p.slug === slug);
 }

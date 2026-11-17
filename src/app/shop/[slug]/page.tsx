@@ -14,6 +14,8 @@ import {
 import { categoryMeta } from "@/lib/site";
 import { Price } from "@/components/product/price";
 import { sanitizeDescription, looksLikeHtml } from "@/lib/rich-text";
+import { JsonLd } from "@/components/seo/json-ld";
+import { productSchema, breadcrumbSchema } from "@/lib/seo";
 
 type Params = Promise<{ slug: string }>;
 
@@ -29,13 +31,22 @@ export async function generateMetadata({
   const { slug } = await params;
   const product = await getProduct(slug);
   if (!product) return { title: "Not found" };
+  // The product description may contain HTML; keep the meta description plain.
+  const metaDescription = product.description
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 200);
   return {
     title: product.name,
-    description: product.description,
+    description: metaDescription || product.name,
+    alternates: { canonical: `/shop/${product.slug}` },
     openGraph: {
       title: product.name,
-      description: product.description,
-      images: [product.images[0]],
+      description: metaDescription || product.name,
+      url: `/shop/${product.slug}`,
+      type: "website",
+      images: product.images[0] ? [product.images[0]] : undefined,
     },
   };
 }
@@ -55,19 +66,27 @@ export default async function ProductPage({ params }: { params: Params }) {
     { title: "Care Instructions", items: product.care },
   ].filter((s) => s.items && s.items.length > 0);
 
+  const crumbs = [
+    { label: "Home", href: "/" },
+    { label: "Shop", href: "/shop" },
+    {
+      label: catMeta?.title ?? "Shop",
+      href: `/shop?category=${product.category}`,
+    },
+    { label: product.name },
+  ];
+
   return (
     <div className="container-zorael py-8 lg:py-12">
-      <Breadcrumbs
-        items={[
-          { label: "Home", href: "/" },
-          { label: "Shop", href: "/shop" },
-          {
-            label: catMeta?.title ?? "Shop",
-            href: `/shop?category=${product.category}`,
-          },
-          { label: product.name },
+      <JsonLd
+        data={[
+          productSchema(product),
+          breadcrumbSchema(
+            crumbs.map((c) => ({ name: c.label, url: c.href })),
+          ),
         ]}
       />
+      <Breadcrumbs items={crumbs} />
 
       <div className="mt-6 grid gap-10 lg:grid-cols-2 lg:gap-14">
         {/* Gallery */}

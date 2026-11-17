@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { SITE } from "@/lib/site";
 import { getAllProducts, getCollections } from "@/lib/catalog";
-import { journalPosts } from "@/lib/journal";
+import { getJournalPosts } from "@/lib/journal";
 
 /** Half a day — the catalog changes through the admin panel, not on deploy. */
 export const revalidate = 43200;
@@ -31,13 +31,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // A database read here must never take the whole sitemap down with it —
   // a 500 on /sitemap.xml is worse for crawling than a short sitemap.
-  const [products, collections] = await Promise.all([
+  const [products, collections, posts] = await Promise.all([
     getAllProducts().catch((err) => {
       console.error("[sitemap] products unavailable:", err);
       return [];
     }),
     getCollections().catch((err) => {
       console.error("[sitemap] collections unavailable:", err);
+      return [];
+    }),
+    getJournalPosts().catch((err) => {
+      console.error("[sitemap] journal unavailable:", err);
       return [];
     }),
   ]);
@@ -57,7 +61,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly" as const,
       priority: 0.6,
     })),
-    ...journalPosts.map((post) => ({
+    ...posts.map((post) => ({
       url: `${base}/journal/${post.slug}`,
       lastModified: new Date(post.date),
       changeFrequency: "yearly" as const,

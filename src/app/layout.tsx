@@ -77,9 +77,10 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body
         className="flex min-h-full flex-col bg-ivory"
-        data-new-gr-c-s-check-loaded="14.1337.0"
+        data-new-gr-c-s-check-loaded="14.1347.0"
         data-gr-ext-installed=""
         cz-shortcut-listen="true"
+        data-temp-mail-org="0"
       >
         {isAdmin ? (
           children

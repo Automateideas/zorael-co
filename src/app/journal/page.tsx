@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { Media } from "@/components/media";
-import { journalPosts } from "@/lib/journal";
+import { getJournalPosts } from "@/lib/journal";
 
 export const metadata: Metadata = {
   title: "Journal",
@@ -19,8 +19,8 @@ function formatDate(iso: string) {
   });
 }
 
-export default function JournalPage() {
-  const [featured, ...rest] = journalPosts;
+export default async function JournalPage() {
+  const [featured, ...rest] = await getJournalPosts();
 
   return (
     <div className="container-zorael py-8 lg:py-12">

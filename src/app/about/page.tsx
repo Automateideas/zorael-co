@@ -5,6 +5,7 @@ import { Media } from "@/components/media";
 import { PillLink } from "@/components/pill-link";
 import { Monogram } from "@/components/layout/logo";
 import { getSiteImages } from "@/lib/site-images";
+import { getAboutContent } from "@/lib/site-content";
 
 export const metadata: Metadata = {
   title: "About Us",
@@ -12,31 +13,18 @@ export const metadata: Metadata = {
     "The house of ZORAEL & CO. — craftsmanship, elegance and the art of timeless style.",
 };
 
-const values = [
-  {
-    Icon: Gem,
-    title: "Premium Quality",
-    copy: "Only finest materials, chosen with intent and finished by hand.",
-  },
-  {
-    Icon: Sparkles,
-    title: "Curated Collections",
-    copy: "Considered edits, made in limited quantities and meant to be kept.",
-  },
-  {
-    Icon: Leaf,
-    title: "Responsible Craft",
-    copy: "Small runs, low waste, and a respect for the makers behind each piece.",
-  },
-  {
-    Icon: HandHeart,
-    title: "Made to Last",
-    copy: "Design that outlives the season — quiet luxury, worn for years.",
-  },
-];
+/** Icons are fixed by position; the four value cards' text is admin-editable. */
+const valueIcons = [Gem, Sparkles, Leaf, HandHeart];
 
 export default async function AboutPage() {
-  const siteImages = await getSiteImages();
+  const [siteImages, content] = await Promise.all([
+    getSiteImages(),
+    getAboutContent(),
+  ]);
+  const values = content.values.map((v, i) => ({
+    ...v,
+    Icon: valueIcons[i] ?? Gem,
+  }));
 
   return (
     <div>
@@ -54,10 +42,10 @@ export default async function AboutPage() {
           <div className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center text-ivory">
             <Monogram className="text-4xl" />
             <h1 className="mt-6 font-serif text-4xl tracking-tight sm:text-5xl lg:text-6xl">
-              The House of Zorael
+              {content.heroTitle}
             </h1>
             <p className="mt-4 max-w-md text-sm text-ivory/85 sm:text-base">
-              Luxury Fashion House
+              {content.heroSubtitle}
             </p>
           </div>
         </div>
@@ -70,16 +58,12 @@ export default async function AboutPage() {
 
         {/* Statement */}
         <div className="mx-auto mt-12 max-w-3xl text-center">
-          <p className="eyebrow mb-4">Our Philosophy</p>
+          <p className="eyebrow mb-4">{content.philosophyEyebrow}</p>
           <p className="font-serif text-2xl leading-relaxed tracking-tight text-charcoal sm:text-3xl">
-            At Zorael &amp; Co., we believe in more than just fashion — we
-            believe in craftsmanship, elegance and the art of timeless style.
+            {content.philosophyStatement}
           </p>
           <p className="mt-6 text-sm leading-relaxed text-charcoal/65">
-            Our collections are designed for the modern individual who values
-            authenticity, luxury and self-expression. Each piece begins on
-            paper, is refined against the body, and is finished by hand in small
-            runs — nothing rushed to a calendar it does not deserve.
+            {content.philosophyBody}
           </p>
         </div>
 
@@ -94,23 +78,19 @@ export default async function AboutPage() {
             />
           </div>
           <div>
-            <p className="eyebrow mb-4">Craftsmanship</p>
+            <p className="eyebrow mb-4">{content.craftEyebrow}</p>
             <h2 className="font-serif text-3xl tracking-tight text-charcoal sm:text-4xl">
-              Made by hand, meant to last.
+              {content.craftHeading}
             </h2>
             <p className="mt-5 text-sm leading-relaxed text-charcoal/65">
-              From the first sketch to the final stitch, our makers work in
-              small ateliers, finishing seams by hand and pressing each garment
-              to sit exactly as intended. We choose materials for how they age,
-              not only how they look on the first day.
+              {content.craftBody1}
             </p>
             <p className="mt-4 text-sm leading-relaxed text-charcoal/65">
-              The result is quiet: a piece that simply fits, and keeps fitting.
-              That, to us, is the mark of true luxury.
+              {content.craftBody2}
             </p>
             <div className="mt-8">
-              <PillLink href="/shop" variant="primary" withArrow>
-                Explore the Collections
+              <PillLink href={content.craftCtaHref} variant="primary" withArrow>
+                {content.craftCtaLabel}
               </PillLink>
             </div>
           </div>
@@ -138,13 +118,12 @@ export default async function AboutPage() {
           id="support"
           className="mt-20 scroll-mt-28 rounded-lg bg-cream px-6 py-12 text-center sm:px-12"
         >
-          <p className="eyebrow mb-3">Customer Support</p>
+          <p className="eyebrow mb-3">{content.supportEyebrow}</p>
           <h2 className="font-serif text-3xl tracking-tight text-charcoal">
-            We&apos;re here to help.
+            {content.supportHeading}
           </h2>
           <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-charcoal/65">
-            Questions on sizing, shipping, or a piece you&apos;ve set your heart
-            on? Our client care team would be glad to assist.
+            {content.supportBody}
           </p>
           <div className="mt-7 flex flex-wrap justify-center gap-3">
             <PillLink href="/journal" variant="secondary">

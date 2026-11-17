@@ -4,12 +4,14 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { Media } from "@/components/media";
-import { journalPosts, getJournalPost } from "@/lib/journal";
+import { getJournalPosts, getJournalPost } from "@/lib/journal";
+import { JsonLd } from "@/components/seo/json-ld";
+import { articleSchema, breadcrumbSchema } from "@/lib/seo";
 
 type Params = Promise<{ slug: string }>;
 
-export function generateStaticParams() {
-  return journalPosts.map((p) => ({ slug: p.slug }));
+export async function generateStaticParams() {
+  return (await getJournalPosts()).map((p) => ({ slug: p.slug }));
 }
 
 export async function generateMetadata({
@@ -18,12 +20,20 @@ export async function generateMetadata({
   params: Params;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const post = getJournalPost(slug);
+  const post = await getJournalPost(slug);
   if (!post) return { title: "Not found" };
   return {
     title: post.title,
     description: post.excerpt,
-    openGraph: { title: post.title, description: post.excerpt, type: "article" },
+    alternates: { canonical: `/journal/${post.slug}` },
+    openGraph: {
+      title: post.title,
+      description: post.excerpt,
+      url: `/journal/${post.slug}`,
+      type: "article",
+      publishedTime: new Date(post.date).toISOString(),
+      images: post.coverImage ? [post.coverImage] : undefined,
+    },
   };
 }
 
@@ -41,13 +51,23 @@ export default async function JournalPostPage({
   params: Params;
 }) {
   const { slug } = await params;
-  const post = getJournalPost(slug);
+  const post = await getJournalPost(slug);
   if (!post) notFound();
 
-  const more = journalPosts.filter((p) => p.id !== post.id).slice(0, 3);
+  const more = (await getJournalPosts()).filter((p) => p.id !== post.id).slice(0, 3);
 
   return (
     <article className="pb-8">
+      <JsonLd
+        data={[
+          articleSchema(post),
+          breadcrumbSchema([
+            { name: "Home", url: "/" },
+            { name: "Journal", url: "/journal" },
+            { name: post.title },
+          ]),
+        ]}
+      />
       {/* Cover */}
       <div className="relative aspect-[16/10] w-full sm:aspect-[16/7]">
         <Media

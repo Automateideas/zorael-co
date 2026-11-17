@@ -7,12 +7,15 @@ import { BrandStory } from "@/components/home/brand-story";
 import { TrustBar } from "@/components/home/trust-bar";
 import { img, PHOTO } from "@/lib/images";
 import { getSiteImages } from "@/lib/site-images";
+import { JsonLd } from "@/components/seo/json-ld";
+import { organizationSchema, websiteSchema } from "@/lib/seo";
 
 export default async function Home() {
   const siteImages = await getSiteImages();
 
   return (
     <>
+      <JsonLd data={[organizationSchema(), websiteSchema()]} />
       <Hero images={siteImages.hero} />
       <FeaturedCategories
         images={{

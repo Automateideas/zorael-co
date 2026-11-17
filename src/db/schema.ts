@@ -58,6 +58,21 @@ export const siteImages = pgTable(
   () => [publicRead("site_images")],
 ).enableRLS();
 
+/**
+ * Editable text content for fixed pages (currently the About page). One row per
+ * content key; `value` is a JSON blob of that page's fields. A missing row or
+ * field falls back to the built-in copy, so pages never render blank.
+ */
+export const siteContent = pgTable(
+  "site_content",
+  {
+    key: text("key").primaryKey(),
+    value: jsonb("value").$type<Record<string, unknown>>().notNull().default({}),
+    updatedAt: ts("updated_at"),
+  },
+  () => [publicRead("site_content")],
+).enableRLS();
+
 export const categories = pgTable(
   "categories",
   {
@@ -167,6 +182,31 @@ export const collectionProducts = pgTable(
     primaryKey({ columns: [t.collectionId, t.productId] }),
     publicRead("collection_products"),
   ],
+).enableRLS();
+
+/**
+ * Journal / editorial posts — managed via the admin panel. The storefront
+ * reads published posts from here (via `src/lib/journal.ts`), falling back to
+ * the static seed posts when no database is configured.
+ */
+export const journalPosts = pgTable(
+  "journal_posts",
+  {
+    id: text("id").primaryKey(),
+    slug: text("slug").notNull().unique(),
+    title: text("title").notNull(),
+    excerpt: text("excerpt").notNull().default(""),
+    category: text("category").notNull().default(""),
+    readingTime: text("reading_time").notNull().default(""),
+    coverImage: text("cover_image").notNull().default(""),
+    body: jsonb("body").$type<string[]>().notNull().default([]),
+    isPublished: boolean("is_published").notNull().default(true),
+    publishedAt: ts("published_at"),
+    sortOrder: integer("sort_order").notNull().default(0),
+    createdAt: ts("created_at"),
+    updatedAt: ts("updated_at"),
+  },
+  () => [publicRead("journal_posts")],
 ).enableRLS();
 
 /**

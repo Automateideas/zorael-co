@@ -44,12 +44,19 @@ export function SlotEditor({ slot }: { slot: Slot }) {
     setPickerOpen(false);
   };
 
+  // Removing a built-in (default) image first "adopts" the defaults into the
+  // editable list, then drops the chosen one — so the admin can delete old
+  // carousel images even before adding their own.
   const removeAt = (i: number) =>
-    setImages((prev) => prev.filter((_, idx) => idx !== i));
+    setImages((prev) => {
+      const base = prev.length > 0 ? prev : slot.defaults;
+      return base.filter((_, idx) => idx !== i);
+    });
 
   const move = (i: number, dir: -1 | 1) =>
     setImages((prev) => {
-      const next = [...prev];
+      const base = prev.length > 0 ? prev : slot.defaults;
+      const next = [...base];
       const j = i + dir;
       if (j < 0 || j >= next.length) return prev;
       [next[i], next[j]] = [next[j], next[i]];
@@ -95,6 +102,10 @@ export function SlotEditor({ slot }: { slot: Slot }) {
       <div className="mt-4 flex flex-wrap gap-3">
         {preview.map((url, i) => {
           const isCustom = images.length > 0;
+          // Built-in images are removable on multi-image slots (the carousel),
+          // so old artwork can be cleared out; single-image slots replace via
+          // the "Choose" button instead.
+          const canRemove = isCustom || slot.multiple;
           return (
             <div key={`${url}-${i}`} className="relative">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -103,42 +114,40 @@ export function SlotEditor({ slot }: { slot: Slot }) {
                 alt=""
                 className={cn(
                   "h-24 w-32 rounded-md border border-border object-cover",
-                  !isCustom && "opacity-50",
+                  !isCustom && "opacity-60",
                 )}
               />
-              {isCustom && (
-                <>
+              {canRemove && (
+                <button
+                  type="button"
+                  onClick={() => removeAt(i)}
+                  aria-label={`Remove image ${i + 1}`}
+                  className="absolute right-1 top-1 flex size-6 items-center justify-center rounded-full bg-charcoal/85 text-ivory shadow-sm transition-colors hover:bg-red-600"
+                >
+                  <X className="size-3" strokeWidth={2} />
+                </button>
+              )}
+              {slot.multiple && preview.length > 1 && (
+                <div className="absolute bottom-1 left-1 flex gap-1">
                   <button
                     type="button"
-                    onClick={() => removeAt(i)}
-                    aria-label={`Remove image ${i + 1}`}
-                    className="absolute right-1 top-1 flex size-6 items-center justify-center rounded-full bg-charcoal/85 text-ivory transition-colors hover:bg-red-600"
+                    onClick={() => move(i, -1)}
+                    disabled={i === 0}
+                    aria-label="Move earlier"
+                    className="flex size-5 items-center justify-center rounded bg-charcoal/85 text-ivory disabled:opacity-30"
                   >
-                    <X className="size-3" strokeWidth={2} />
+                    <ArrowLeft className="size-3" strokeWidth={2} />
                   </button>
-                  {slot.multiple && preview.length > 1 && (
-                    <div className="absolute bottom-1 left-1 flex gap-1">
-                      <button
-                        type="button"
-                        onClick={() => move(i, -1)}
-                        disabled={i === 0}
-                        aria-label="Move earlier"
-                        className="flex size-5 items-center justify-center rounded bg-charcoal/85 text-ivory disabled:opacity-30"
-                      >
-                        <ArrowLeft className="size-3" strokeWidth={2} />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => move(i, 1)}
-                        disabled={i === preview.length - 1}
-                        aria-label="Move later"
-                        className="flex size-5 items-center justify-center rounded bg-charcoal/85 text-ivory disabled:opacity-30"
-                      >
-                        <ArrowRight className="size-3" strokeWidth={2} />
-                      </button>
-                    </div>
-                  )}
-                </>
+                  <button
+                    type="button"
+                    onClick={() => move(i, 1)}
+                    disabled={i === preview.length - 1}
+                    aria-label="Move later"
+                    className="flex size-5 items-center justify-center rounded bg-charcoal/85 text-ivory disabled:opacity-30"
+                  >
+                    <ArrowRight className="size-3" strokeWidth={2} />
+                  </button>
+                </div>
               )}
             </div>
           );

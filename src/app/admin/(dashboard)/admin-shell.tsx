@@ -14,6 +14,8 @@ import {
   Images,
   Ticket,
   Layers,
+  Newspaper,
+  FileText,
   Image as ImageIcon,
 } from "lucide-react";
 import { useState } from "react";
@@ -25,7 +27,9 @@ const navItems = [
   { href: "/admin/products", label: "Products", icon: Package },
   { href: "/admin/categories", label: "Categories", icon: Tags },
   { href: "/admin/collections", label: "Collections", icon: Layers },
+  { href: "/admin/journal", label: "Journal", icon: Newspaper },
   { href: "/admin/appearance", label: "Page Images", icon: ImageIcon },
+  { href: "/admin/about", label: "About Page", icon: FileText },
   { href: "/admin/coupons", label: "Coupons", icon: Ticket },
   { href: "/admin/storage", label: "Storage", icon: Images },
 ];

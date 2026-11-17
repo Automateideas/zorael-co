@@ -3,11 +3,22 @@ import { ArrowRight } from "lucide-react";
 import { SectionHeading } from "@/components/section-heading";
 import { ProductCard } from "@/components/product/product-card";
 import { Media } from "@/components/media";
-import { getNewArrivals } from "@/lib/catalog";
+import { getNewArrivals, getAllProducts } from "@/lib/catalog";
 import { img, PHOTO } from "@/lib/images";
 
 export async function NewArrivals({ image }: { image?: string }) {
-  const products = await getNewArrivals(6);
+  // "New Arrivals" strictly means products flagged new, but a rail with one
+  // card next to the feature panel looks broken. Top up to 6 with the newest
+  // remaining products so the section always reads as a full row.
+  const [flagged, all] = await Promise.all([
+    getNewArrivals(6),
+    getAllProducts(),
+  ]);
+  const seen = new Set(flagged.map((p) => p.id));
+  const products = [...flagged, ...all.filter((p) => !seen.has(p.id))].slice(
+    0,
+    6,
+  );
 
   return (
     <section className="container-zorael py-14 lg:py-20">
@@ -38,6 +49,7 @@ export async function NewArrivals({ image }: { image?: string }) {
               alt="Accessories collection"
               sizes="(max-width:1024px) 100vw, 340px"
               className="h-full w-full"
+              fit="cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-charcoal/50 to-charcoal/10" />
           </div>
