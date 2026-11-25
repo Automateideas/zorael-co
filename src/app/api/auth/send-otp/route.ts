@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
+import { isOtpConfigured, sendOtp } from "@/lib/two-factor";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,13 +21,6 @@ function normalisePhone(input: unknown): string | null {
 }
 
 export async function POST(request: Request) {
-  // Read per-request: a module-scope read is captured once at load, which on
-  // hosts that inject env at runtime can latch an undefined value.
-  const API_KEY = process.env.TWO_FACTOR_API_KEY;
-  // Blank/unset means "no template segment" — 2Factor then uses the account's
-  // own default, which is the fallback when a named template is not delivering.
-  const TEMPLATE = (process.env.TWO_FACTOR_TEMPLATE_NAME ?? "").trim();
-
   const body = (await request.json().catch(() => ({}))) as {
     phone?: unknown;
     channel?: unknown;
@@ -60,70 +54,22 @@ export async function POST(request: Request) {
     );
   }
 
-  if (!API_KEY) {
+  if (!isOtpConfigured()) {
     return NextResponse.json(
       { error: "OTP service is not configured." },
       { status: 500 },
     );
   }
 
-  try {
-    // Voice has no template segment — it reads the generated code aloud.
-    const url =
-      channel === "voice"
-        ? `https://2factor.in/API/V1/${API_KEY}/VOICE/${phone}/AUTOGEN`
-        : `https://2factor.in/API/V1/${API_KEY}/SMS/${phone}/AUTOGEN${
-            TEMPLATE ? `/${encodeURIComponent(TEMPLATE)}` : ""
-          }`;
-    const res = await fetch(url, { cache: "no-store" });
-    const raw = await res.text();
-
-    let data: { Status?: string; Details?: string };
-    try {
-      data = JSON.parse(raw);
-    } catch {
-      // A non-JSON body means the provider rejected the request outright.
-      console.error("[2factor] non-JSON response", res.status, raw.slice(0, 300));
-      return NextResponse.json(
-        { error: "Could not send the code. Please try again." },
-        { status: 502 },
-      );
-    }
-
-    if (data.Status === "Success" && data.Details) {
-      return NextResponse.json({ sessionId: data.Details, channel });
-    }
-
-    // Surface the provider's own reason in logs — this is what identifies
-    // template/DLT/balance problems in production.
-    console.error(
-      "[2factor] send failed",
-      JSON.stringify({
-        channel,
-        status: data.Status,
-        details: data.Details,
-        template: channel === "sms" ? TEMPLATE : undefined,
-      }),
-    );
-
-    // 2Factor rejects repeats of the same request within 15 seconds.
-    const detail = data.Details ?? "";
-    if (/duplicate request/i.test(detail)) {
-      return NextResponse.json(
-        { error: "Please wait a few seconds before requesting another code." },
-        { status: 429 },
-      );
-    }
-
-    return NextResponse.json(
-      { error: detail || "Failed to send OTP." },
-      { status: 400 },
-    );
-  } catch (err) {
-    console.error("[2factor] request error", err);
-    return NextResponse.json(
-      { error: "Failed to send OTP. Please try again." },
-      { status: 500 },
-    );
+  const result = await sendOtp(phone, channel);
+  if (result.ok) {
+    return NextResponse.json({ sessionId: result.sessionId, channel });
   }
+  if (result.duplicate) {
+    return NextResponse.json({ error: result.error }, { status: 429 });
+  }
+  return NextResponse.json(
+    { error: result.error },
+    { status: result.notConfigured ? 500 : 400 },
+  );
 }

@@ -8,6 +8,7 @@ import {
 } from "@/lib/auth";
 import { hashPassword, validatePassword } from "@/lib/password";
 import { rateLimit, resetRateLimit } from "@/lib/rate-limit";
+import { isOtpConfigured, verifyOtp } from "@/lib/two-factor";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -18,8 +19,6 @@ export const dynamic = "force-dynamic";
  * client-side claim that it already passed.
  */
 export async function POST(request: Request) {
-  const API_KEY = process.env.TWO_FACTOR_API_KEY;
-
   const { phone, sessionId, otp, password } = (await request.json()) as {
     phone?: string;
     sessionId?: string;
@@ -55,29 +54,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: invalid }, { status: 400 });
   }
 
-  if (!API_KEY) {
+  if (!isOtpConfigured()) {
     return NextResponse.json(
       { error: "OTP service is not configured." },
       { status: 500 },
     );
   }
 
-  try {
-    const res = await fetch(
-      `https://2factor.in/API/V1/${API_KEY}/SMS/VERIFY/${sessionId}/${otp}`,
-    );
-    const data = await res.json();
-
-    if (data.Status !== "Success" || data.Details !== "OTP Matched") {
-      return NextResponse.json(
-        { error: "Invalid or expired OTP." },
-        { status: 400 },
-      );
-    }
-  } catch {
+  const verification = await verifyOtp(sessionId, otp);
+  if (!verification.ok) {
     return NextResponse.json(
-      { error: "Verification failed. Please try again." },
-      { status: 500 },
+      { error: verification.error },
+      { status: verification.notConfigured ? 500 : 400 },
     );
   }
 

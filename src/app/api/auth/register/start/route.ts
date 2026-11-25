@@ -3,6 +3,7 @@ import { findProfileByPhone } from "@/lib/auth";
 import { validatePassword } from "@/lib/password";
 import { hasDatabase } from "@/db/client";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
+import { isOtpConfigured, sendOtp } from "@/lib/two-factor";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -21,9 +22,6 @@ function normalisePhone(input: unknown): string | null {
  * account that person later signs into by OTP.
  */
 export async function POST(request: Request) {
-  const API_KEY = process.env.TWO_FACTOR_API_KEY;
-  const TEMPLATE = (process.env.TWO_FACTOR_TEMPLATE_NAME ?? "").trim();
-
   const body = (await request.json().catch(() => ({}))) as {
     fullName?: string;
     email?: string;
@@ -78,34 +76,19 @@ export async function POST(request: Request) {
     );
   }
 
-  if (!API_KEY) {
+  if (!isOtpConfigured()) {
     return NextResponse.json(
       { error: "OTP service is not configured." },
       { status: 500 },
     );
   }
 
-  try {
-    const url = `https://2factor.in/API/V1/${API_KEY}/SMS/${phone}/AUTOGEN${
-      TEMPLATE ? `/${encodeURIComponent(TEMPLATE)}` : ""
-    }`;
-    const res = await fetch(url, { cache: "no-store" });
-    const data = (await res.json()) as { Status?: string; Details?: string };
-
-    if (data.Status === "Success" && data.Details) {
-      return NextResponse.json({ sessionId: data.Details });
-    }
-
-    console.error("[2factor] register send failed", JSON.stringify(data));
-    return NextResponse.json(
-      { error: data.Details || "Could not send the verification code." },
-      { status: 400 },
-    );
-  } catch (err) {
-    console.error("[2factor] register request error", err);
-    return NextResponse.json(
-      { error: "Could not send the verification code." },
-      { status: 500 },
-    );
+  const result = await sendOtp(phone, "sms");
+  if (result.ok) {
+    return NextResponse.json({ sessionId: result.sessionId });
   }
+  return NextResponse.json(
+    { error: result.detail || "Could not send the verification code." },
+    { status: result.notConfigured ? 500 : 400 },
+  );
 }
