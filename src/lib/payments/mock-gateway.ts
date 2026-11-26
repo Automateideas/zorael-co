@@ -17,7 +17,7 @@ import type {
  * flow work locally and in CI. Swap PAYMENT_PROVIDER to a real provider when
  * you're ready — the app code does not change.
  */
-const MOCK_SECRET = "zorael_mock_secret";
+const MOCK_SECRET = process.env.MOCK_PAYMENT_SECRET ?? "zorael_mock_secret";
 
 function sign(...parts: string[]): string {
   return createHmac("sha256", MOCK_SECRET).update(parts.join("|")).digest("hex");
@@ -31,7 +31,7 @@ export class MockGateway implements PaymentGateway {
     return {
       providerOrderId,
       amount: input.amount,
-      publicKey: "mock_public_key",
+      publicKey: process.env.MOCK_PUBLIC_KEY ?? "mock_public_key",
       provider: this.name,
     };
   }
